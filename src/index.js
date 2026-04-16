@@ -21,6 +21,8 @@ async function main() {
 
   // Step 3: Generate video with audio
   // const video = await generateVideo(audio);
+  const video = await generateVideo(audio);
+ console.log("Video path:", video);
 
   console.log('Pipeline complete.');
 }
