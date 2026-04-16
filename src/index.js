@@ -11,9 +11,13 @@ async function main() {
 
   // Step 1: Generate script
   // const script = await generateScript();
+    const script = generateScript(); // ❗ no await here
+    console.log("Script:", script);
 
   // Step 2: Generate speech from script
   // const audio = await generateSpeech(script);
+  const audio = await generateSpeech(script);
+  console.log("Audio path:", audio);
 
   // Step 3: Generate video with audio
   // const video = await generateVideo(audio);
