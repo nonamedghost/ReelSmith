@@ -54,12 +54,13 @@ export async function generateVideo(audioPath) {
       ])
       .outputOptions([
         // '-t', String(duration),   // match audio duration
-        '-t', '5',   // ⬅️ ADD THIS (5 seconds video)
+        // '-t', '30',   // ⬅️ ADD THIS (30 seconds video)
         '-map', '0:v:0',          // video from background
         '-map', '1:a:?',          // audio from speech file
         '-c:v', 'libx264',
         '-c:a', 'aac',
         '-shortest',
+        "-fflags", "+shortest", // match shortest input
         '-y',                     // overwrite output
       ])
       .output(OUTPUT_FILE)
