@@ -11,7 +11,7 @@ const facts = [
   "The Eiffel Tower can grow up to 6 inches taller in summer. Heat causes the iron to expand, making the structure slightly taller.",
 ];
 
-export function generateScript() {
+export function generateScriptDummy() {
   const index = Math.floor(Math.random() * facts.length);
   return facts[index];
 }
