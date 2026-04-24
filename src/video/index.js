@@ -11,13 +11,17 @@ ffmpeg.setFfprobePath(ffprobeInstaller.path);
 const BG_VIDEO = path.join(ASSETS_DIR, 'bg.mp4');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'video.mp4');
 
-export async function generateVideo(audioPath, subtitlePath) {
+export async function generateVideo(audioPath, subtitlePath, bgVideoPath) {
   if (!audioPath || typeof audioPath !== 'string') {
     throw new Error('generateVideo requires a valid audio file path.');
   }
 
   if (!await fs.pathExists(audioPath)) {
     throw new Error(`Audio file not found: ${audioPath}`);
+  }
+
+  if (!await fs.pathExists(bgVideoPath)) {
+    throw new Error(`Background video not found: ${bgVideoPath}`);
   }
 
   if (!await fs.pathExists(BG_VIDEO)) {
@@ -32,7 +36,8 @@ export async function generateVideo(audioPath, subtitlePath) {
 
   return new Promise((resolve, reject) => {
     ffmpeg()
-      .input(BG_VIDEO)
+      //.input(BG_VIDEO)
+      .input(bgVideoPath)
       .inputOptions(['-stream_loop', '-1'])  // loop background to cover audio length
       .input(audioPath)
       .videoFilters([

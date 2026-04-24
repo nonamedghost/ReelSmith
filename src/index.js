@@ -10,6 +10,8 @@ import { generateSpeech } from "./tts/deepgramTTS.js";
 import { transcribeAudio } from "./subtitles/deepgramSTT.js";
 import { generateSRT } from "./subtitles/generateSRT.js";
 
+import { fetchBackgroundVideo } from './video/fetchBackground.js';
+
 async function main() {
   await ensureDirectories();
 
@@ -50,10 +52,15 @@ async function main() {
   console.log("Subtitles path:", subtitles);
 
 
+  // Step 2.7: Fetch background video
+  const bgVideo = await fetchBackgroundVideo(topic);
+  console.log("Background video path:", bgVideo);
+
+
 
   // Step 3: Generate video with audio (VIDEO)
 
-  const video = await generateVideo(audio, subtitles);
+  const video = await generateVideo(audio, subtitles, bgVideo);
   console.log("Video path:", video);
 
   console.log('Pipeline complete.');
