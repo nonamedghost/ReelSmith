@@ -2,8 +2,13 @@ import 'dotenv/config';
 import { ensureDirectories } from './utils/paths.js';
 import { generateScript } from './script/generateScriptAI.js';
 import { generateScriptDummy } from './script/index.js';
-import { generateSpeech } from './tts/index.js';
+// import { generateSpeech } from './tts/index.js';
 import { generateVideo } from './video/index.js';
+
+// NEW ✅
+import { generateSpeech } from "./tts/deepgramTTS.js";
+import { transcribeAudio } from "./subtitles/deepgramSTT.js";
+import { generateSRT } from "./subtitles/generateSRT.js";
 
 async function main() {
   await ensureDirectories();
@@ -39,10 +44,16 @@ async function main() {
   console.log("Audio path:", audio);
 
 
+  // Step 2.5: Generate subtitles
+  const words = await transcribeAudio(audio);
+  const subtitles = generateSRT(words);
+  console.log("Subtitles path:", subtitles);
+
+
 
   // Step 3: Generate video with audio (VIDEO)
 
-  const video = await generateVideo(audio);
+  const video = await generateVideo(audio, subtitles);
   console.log("Video path:", video);
 
   console.log('Pipeline complete.');

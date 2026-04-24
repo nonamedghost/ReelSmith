@@ -11,16 +11,7 @@ ffmpeg.setFfprobePath(ffprobeInstaller.path);
 const BG_VIDEO = path.join(ASSETS_DIR, 'bg.mp4');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'video.mp4');
 
-// function getAudioDuration(filePath) {
-//   return new Promise((resolve, reject) => {
-//     ffmpeg.ffprobe(filePath, (err, metadata) => {
-//       if (err) return reject(new Error(`Failed to probe audio: ${err.message}`));
-//       resolve(metadata.format.duration);
-//     });
-//   });
-// }
-
-export async function generateVideo(audioPath) {
+export async function generateVideo(audioPath, subtitlePath) {
   if (!audioPath || typeof audioPath !== 'string') {
     throw new Error('generateVideo requires a valid audio file path.');
   }
@@ -35,12 +26,9 @@ export async function generateVideo(audioPath) {
 
   await fs.ensureDir(OUTPUT_DIR);
 
-//   const rawDuration = await getAudioDuration(audioPath);
-//   const duration = parseFloat(rawDuration);
-//   if (isNaN(duration) || duration <= 0) {
-//     throw new Error('Could not determine audio duration. Is the file a valid audio format?');
-//   }
-//   console.log(`Audio duration: ${duration.toFixed(2)}s`);
+  const safeSubtitlePath = subtitlePath
+    .replace(/\\/g, "/")
+    .replace(/:/g, "\\:");
 
   return new Promise((resolve, reject) => {
     ffmpeg()
@@ -53,16 +41,17 @@ export async function generateVideo(audioPath) {
         'crop=1080:1920',
       ])
       .outputOptions([
-        // '-t', String(duration),   // match audio duration
-        // '-t', '30',   // ⬅️ ADD THIS (30 seconds video)
-        '-map', '0:v:0',          // video from background
-        '-map', '1:a:?',          // audio from speech file
-        '-c:v', 'libx264',
-        '-c:a', 'aac',
-        '-shortest',
-        "-fflags", "+shortest", // match shortest input
-        '-y',                     // overwrite output
-      ])
+        // '-t', String(duration),                 // match audio duration
+        '-t', '30',                                // ⬅️ ADD THIS (30 seconds video)  
+        '-map', '0:v:0',                           // video from background
+        '-map', '1:a:0',                           // audio from speech file
+        '-c:v', 'libx264',                         // video codec
+        '-c:a', 'aac',                             // audio codec
+        '-shortest',                               // match shortest input
+        '-vf', `subtitles='${safeSubtitlePath}'`,  // add subtitles
+        //  "-fflags", "+shortest", // match shortest input
+        '-y'                                       // overwrite output file if it exists 
+        ])
       .output(OUTPUT_FILE)
       .on('start', (cmd) => {
         console.log('FFmpeg started.');
