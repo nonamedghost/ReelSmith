@@ -15,7 +15,8 @@ export async function fetchBackgroundVideo(query = "nature") {
       },
     });
 
-    const video = response.data.videos[0];
+    const videos = response.data.videos;
+    const video = videos[Math.floor(Math.random() * videos.length)];
 
     if (!video) throw new Error("No video found");
 
