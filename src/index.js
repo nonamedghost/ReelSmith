@@ -13,8 +13,18 @@ import { fetchBackgroundVideo } from './video/fetchBackground.js';
 import { generateVisualQuery } from "./script/generateVisualQuery.js";
 import { generateSceneQueries } from "./script/generateSceneQueries.js";
 
+import fs from "fs-extra";
+import { OUTPUT_DIR } from "./utils/paths.js";
+
+async function cleanOutput() {
+  await fs.emptyDir(OUTPUT_DIR);
+  console.log("Output directory cleaned");
+}
+
 async function main() {
   await ensureDirectories();
+  await cleanOutput(); // 👈 ADD THIS LINE
+
 
   console.log('Reels Generator started.');
 
@@ -33,7 +43,7 @@ async function main() {
       ? await generateScript(topic)
       : generateScriptDummy();
   } catch (err) {
-    console.log("AI failed, using fallback...");
+    console.log("Gemini ERROR:", err);
     script = generateScriptDummy();
   }
 
@@ -85,7 +95,7 @@ async function main() {
   
   // Step 2.7: Fetch background video (AI-powered)
 
-  
+  /*
   let visualQuery;
 
     try {
@@ -99,9 +109,8 @@ async function main() {
   // Step 2.8: Fetch background video
   const bgVideo = await fetchBackgroundVideo(visualQuery);
   console.log("Background video path:", bgVideo);
+  */
   
-
-  /*
   // Step 2.7: Fetch background videos (MULTI-SCENE AI)
 
   let clips = [];
@@ -113,11 +122,19 @@ async function main() {
     for (const q of queries) {
       try {
         const clip = await fetchBackgroundVideo(q);
-        console.log("Fetched clip for:", q, "->", clip);
-        clips.push(clip);
+
+        if (clip) {
+          console.log("Fetched clip for:", q, "->", clip);
+          clips.push(clip);
+        }
       } catch (err) {
         console.log("Failed for query:", q);
       }
+    }
+    if (clips.length === 0) {
+      console.log("No clips found, using fallback...");
+      const fallbackClip = await fetchBackgroundVideo(topic);
+      clips.push(fallbackClip);
     }
 
   } catch (err) {
@@ -127,12 +144,13 @@ async function main() {
     const fallbackClip = await fetchBackgroundVideo(topic);
     clips.push(fallbackClip);
   }
-  */
+  console.log("Final clips:", clips.length, clips);
+  
 
 
   // Step 3: Generate video with audio (VIDEO)
-  const video = await generateVideo(audio, subtitles, bgVideo);
-  //const video = await generateVideo(audio, subtitles, clips);
+  //const video = await generateVideo(audio, subtitles, bgVideo);
+  const video = await generateVideo(audio, subtitles, clips[0]);
   console.log("Video path:", video);
 
   console.log('Pipeline complete.');

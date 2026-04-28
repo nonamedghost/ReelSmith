@@ -38,8 +38,10 @@ export async function generateSceneQueries(script) {
   const text =
     data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-  return text
-    .split(",")
-    .map(q => q.trim().toLowerCase())
-    .filter(q => q.length > 0);
+    return [...new Set(
+      text
+        .split(",")
+        .map(q => q.replace(/\n/g, " ").trim().toLowerCase())
+        .filter(q => q.length > 0)
+    )].slice(0, 3); // 🔥 LIMIT HERE
 }

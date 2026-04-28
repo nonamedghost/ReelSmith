@@ -1,12 +1,17 @@
 import fs from "fs";
 import path from "path";
 import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
 import { OUTPUT_DIR } from "../utils/paths.js";
+
+let clipCounter = 0;
 
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
 
 export async function fetchBackgroundVideo(query = "nature") {
   try {
+    clipCounter++;
+
     const url = `https://api.pexels.com/videos/search?query=${query}&per_page=1&orientation=portrait`;
 
     const response = await axios.get(url, {
@@ -16,16 +21,34 @@ export async function fetchBackgroundVideo(query = "nature") {
     });
 
     const videos = response.data.videos;
-    const video = videos[Math.floor(Math.random() * videos.length)];
 
+    if (!videos || videos.length === 0) {
+      throw new Error("No videos returned from Pexels");
+    }
+
+    const video = videos[Math.floor(Math.random() * videos.length)];
+    
     if (!video) throw new Error("No video found");
 
     // pick best quality vertical file
-    const file = video.video_files.find(f => f.height >= 1920) || video.video_files[0];
+    // const file = video.video_files.find(f => f.height >= 1920) || video.video_files[0];
+
+    
+
+    const file =
+      video.video_files.find(f => f.height >= 1920 && f.link) ||
+      video.video_files.find(f => f.link);
+
+    if (!file) throw new Error("No valid video file found");
 
     const videoUrl = file.link;
 
-    const filePath = path.join(OUTPUT_DIR, "bg.mp4");
+    // const filePath = path.join(OUTPUT_DIR, "bg.mp4");
+    const filePath = path.join(
+      OUTPUT_DIR,
+      //`bg_${uuidv4()}.mp4`
+      `bg_${clipCounter}.mp4`
+    );
 
     const res = await axios({
       method: "GET",
