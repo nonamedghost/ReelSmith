@@ -1,37 +1,42 @@
-import 'dotenv/config';
-import { ensureDirectories } from './utils/paths.js';
-import { generateScript } from './script/generateScriptAI.js';
-import { generateScriptDummy } from './script/index.js';
-// import { generateSpeech } from './tts/index.js';
-import { generateVideo } from './video/index.js';
-// NEW ✅
+import "dotenv/config";
+
+import { ensureDirectories } from "./utils/paths.js";
+import fs from "fs-extra";
+import { OUTPUT_DIR } from "./utils/paths.js";
+
+import { generateScript } from "./script/generateScriptAI.js";
+import { generateScriptDummy } from "./script/index.js";
+
 import { generateSpeech } from "./tts/deepgramTTS.js";
 import { transcribeAudio } from "./subtitles/deepgramSTT.js";
 import { generateSRT } from "./subtitles/generateSRT.js";
 
-import { fetchBackgroundVideo } from './video/fetchBackground.js';
-import { generateVisualQuery } from "./script/generateVisualQuery.js";
+import { fetchBackgroundVideo } from "./video/fetchBackground.js";
 import { generateSceneQueries } from "./script/generateSceneQueries.js";
 
-import fs from "fs-extra";
-import { OUTPUT_DIR } from "./utils/paths.js";
+import { generateMergedVideo } from "./video/multiclipVideo.js";
 
+// =======================
+// CLEAN OUTPUT
+// =======================
 async function cleanOutput() {
   await fs.emptyDir(OUTPUT_DIR);
   console.log("Output directory cleaned");
 }
 
+// =======================
+// MAIN PIPELINE
+// =======================
 async function main() {
-  await ensureDirectories();
-  await cleanOutput(); // 👈 ADD THIS LINE
+  await cleanOutput();        // ✅ clean first
+  await ensureDirectories();  // ✅ then ensure
 
+  console.log("Reels Generator started.");
 
-  console.log('Reels Generator started.');
-
-  // Step 1: Generate script
-
+  // =======================
+  // STEP 1: SCRIPT
+  // =======================
   const topics = ["space facts", "animal facts", "science facts"];
-
   const topic = topics[Math.floor(Math.random() * topics.length)];
 
   const USE_AI = true;
@@ -44,75 +49,29 @@ async function main() {
       : generateScriptDummy();
   } catch (err) {
     console.log("Gemini ERROR:", err);
+    console.log("AI failed, using fallback...");
     script = generateScriptDummy();
   }
 
-    console.log("Topic:", topic);
-    console.log("Script:", script);
+  console.log("Topic:", topic);
+  console.log("Script:", script);
 
-  // Step 2: Generate speech from script (TTS)
-
+  // =======================
+  // STEP 2: Generate Speech TTS
+  // =======================
   const audio = await generateSpeech(script);
   console.log("Audio path:", audio);
 
-
-  // Step 2.5: Generate subtitles
+  // =======================
+  // STEP 3: Generate SUBTITLES
+  // =======================
   const words = await transcribeAudio(audio);
   const subtitles = generateSRT(words);
   console.log("Subtitles path:", subtitles);
 
-
-  // Step 2.7: Fetch background video
-
-  // function buildSearchQuery(topic, script) {
-  //   const words = script.toLowerCase().split(/\W+/);
-
-  //   const stopWords = [
-  //     "the","is","and","a","to","of","in","it","you","your",
-  //     "have","has","had","was","were","be","on","for","with",
-  //     "this","that","they","them","their","can","also"
-  //   ];
-
-  //   const filtered = words.filter(
-  //     w => w.length > 3 && !stopWords.includes(w)
-  //   );
-
-  //   // pick 2–3 meaningful words
-  //   const selected = filtered
-  //     .sort(() => 0.5 - Math.random())
-  //     .slice(0, 3);
-
-  //   return `${topic} ${selected.join(" ")}`;
-  // }
-
-  // Step 2.7: Fetch background video (SMART)
-  // const query = buildSearchQuery(topic, script);
-  // console.log("Search query:", query);
-
-  // const bgVideo = await fetchBackgroundVideo(query);
-  // console.log("Background video path:", bgVideo);
-  
-  
-  // Step 2.7: Fetch background video (AI-powered)
-
-  /*
-  let visualQuery;
-
-    try {
-      visualQuery = await generateVisualQuery(script);
-    } catch (err) {
-      console.log("Visual query failed, using fallback...");
-      visualQuery = topic; // fallback
-    }
-  console.log("Visual query:", visualQuery);
-
-  // Step 2.8: Fetch background video
-  const bgVideo = await fetchBackgroundVideo(visualQuery);
-  console.log("Background video path:", bgVideo);
-  */
-  
-  // Step 2.7: Fetch background videos (MULTI-SCENE AI)
-
+  // =======================
+  // STEP 4: MULTI-SCENE CLIPS
+  // =======================
   let clips = [];
 
   try {
@@ -131,30 +90,38 @@ async function main() {
         console.log("Failed for query:", q);
       }
     }
+
     if (clips.length === 0) {
       console.log("No clips found, using fallback...");
-      const fallbackClip = await fetchBackgroundVideo(topic);
-      clips.push(fallbackClip);
+      const fallback = await fetchBackgroundVideo(topic);
+      clips.push(fallback);
     }
 
   } catch (err) {
-    console.log("Scene query failed, using fallback...");
-    
+    console.log("Scene generation failed, using fallback...");
     // fallback → use topic
-    const fallbackClip = await fetchBackgroundVideo(topic);
-    clips.push(fallbackClip);
+    const fallback = await fetchBackgroundVideo(topic);
+    clips.push(fallback);
   }
-  console.log("Final clips:", clips.length, clips);
-  
 
+  console.log("Final clips:", clips);
 
-  // Step 3: Generate video with audio (VIDEO)
-  //const video = await generateVideo(audio, subtitles, bgVideo);
-  const video = await generateVideo(audio, subtitles, clips[0]);
+  // =======================
+  // STEP 5: FINAL VIDEO
+  // =======================
+  const video = await generateMergedVideo(audio, subtitles, clips);
+
   console.log("Video path:", video);
-
-  console.log('Pipeline complete.');
+  console.log("Pipeline complete.");
 }
 
 main().catch(console.error);
 
+/*
+✅ What you fixed (important)
+✔ No duplicate logic
+✔ No unused variables (bgVideo)
+✔ Clean multi-clip pipeline
+✔ Proper order of operations
+✔ Future-proof structure
+*/ 
