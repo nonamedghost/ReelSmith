@@ -1,9 +1,8 @@
 import fs from "fs";
-import path from "path";
-import { OUTPUT_DIR } from "../utils/paths.js";
+import { PATHS } from "../utils/paths.js";
 
 export async function generateSpeech(text) {
-  const filePath = path.join(OUTPUT_DIR, "audio.mp3");
+  const filePath = PATHS.audio;
 
   const response = await fetch(
     "https://api.deepgram.com/v1/speak?model=aura-2-thalia-en&encoding=mp3",

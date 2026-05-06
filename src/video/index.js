@@ -8,7 +8,6 @@ import { OUTPUT_DIR, ASSETS_DIR } from '../utils/paths.js';
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 ffmpeg.setFfprobePath(ffprobeInstaller.path);
 
-// const BG_VIDEO = path.join(ASSETS_DIR, 'bg.mp4');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'video.mp4');
 
 export async function generateVideo(audioPath, subtitlePath, bgVideoPath) {
@@ -23,10 +22,6 @@ export async function generateVideo(audioPath, subtitlePath, bgVideoPath) {
   if (!await fs.pathExists(bgVideoPath)) {
     throw new Error(`Background video not found: ${bgVideoPath}`);
   }
-
-  // if (!await fs.pathExists(BG_VIDEO)) {
-  //   throw new Error(`Background video not found: ${BG_VIDEO}. Place a bg.mp4 file in the assets/ folder.`);
-  // }
 
   await fs.ensureDir(OUTPUT_DIR);
 

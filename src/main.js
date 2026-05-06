@@ -1,8 +1,7 @@
 import "dotenv/config";
 
+import cleanup from "./utils/cleanup.js";
 import { ensureDirectories } from "./utils/paths.js";
-import fs from "fs-extra";
-import { OUTPUT_DIR } from "./utils/paths.js";
 
 import { generateScript } from "./script/generateScriptAI.js";
 import { generateScriptDummy } from "./script/index.js";
@@ -17,20 +16,13 @@ import { generateSceneQueries } from "./script/generateSceneQueries.js";
 import { generateMergedVideo } from "./video/multiclipVideo.js";
 
 // =======================
-// CLEAN OUTPUT
-// =======================
-async function cleanOutput() {
-  await fs.emptyDir(OUTPUT_DIR);
-  console.log("Output directory cleaned");
-}
-
-// =======================
 // MAIN PIPELINE
 // =======================
 async function main() {
-  await cleanOutput();        // ✅ clean first
-  await ensureDirectories();  // ✅ then ensure
-
+  cleanup();              // clean temp, clips, final
+  console.log("🧹 Fresh run started...");
+  
+  await ensureDirectories(); // recreate folders
   console.log("Reels Generator started.");
 
   // =======================
@@ -56,6 +48,9 @@ async function main() {
   console.log("Topic:", topic);
   console.log("Script:", script);
 
+  // Add delay here
+  await new Promise(resolve => setTimeout(resolve, 3000));
+
   // =======================
   // STEP 2: Generate Speech TTS
   // =======================
@@ -74,7 +69,7 @@ async function main() {
   // =======================
   let clips = [];
 
-  try {
+  try {    
     const queries = await generateSceneQueries(script);
     console.log("Scene queries:", queries);
 

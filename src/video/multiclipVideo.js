@@ -6,7 +6,7 @@ import fs from "fs-extra";
 import ffmpeg from "fluent-ffmpeg";
 import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
-import { OUTPUT_DIR } from "../utils/paths.js";
+import { PATHS, CLIPS_DIR, FINAL_DIR } from "../utils/paths.js";
 
 // ===============================
 // ⚙️ SETUP FFMPEG PATHS
@@ -17,7 +17,7 @@ ffmpeg.setFfprobePath(ffprobeInstaller.path);
 // ===============================
 // 📁 FINAL OUTPUT FILE
 // ===============================
-const OUTPUT_FILE = path.join(OUTPUT_DIR, "video.mp4");
+const OUTPUT_FILE = PATHS.finalVideo;
 
 // ===============================
 // 🔍 GET AUDIO DURATION (IMPORTANT)
@@ -96,7 +96,9 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
     }
   }
 
-  await fs.ensureDir(OUTPUT_DIR);
+  // await fs.ensureDir(OUTPUT_DIR);
+  await fs.ensureDir(CLIPS_DIR);
+  await fs.ensureDir(FINAL_DIR);
 
   // ===============================
   // ⏱️ CALCULATE DURATIONS
@@ -121,7 +123,7 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
 
   for (let i = 0; i < clipPaths.length; i++) {
     const input = clipPaths[i];
-    const output = path.join(OUTPUT_DIR, `norm_${i}.mp4`);
+    const output = PATHS.getClip(i);
 
     console.log(`Normalizing clip ${i + 1}...`);
 
@@ -138,10 +140,10 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
   // ===============================
   // 📝 STEP 2: CREATE CONCAT FILE
   // ===============================
-  const concatFile = path.join(OUTPUT_DIR, "concat.txt");
+  const concatFile = PATHS.concat;
 
   const concatContent = normalizedClips
-    .map((clip) => `file '${clip.replace(/\\/g, "/")}'`)
+    .map(clip => `file '${path.resolve(clip).replace(/\\/g, "/")}'`)
     .join("\n");
 
   await fs.writeFile(concatFile, concatContent);
@@ -150,7 +152,7 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
   // 🔗 STEP 3: MERGE CLIPS (FAST MODE)
   // Uses copy since clips are already normalized
   // ===============================
-  const mergedVideo = path.join(OUTPUT_DIR, "merged.mp4");
+  const mergedVideo = PATHS.merged;
 
   await new Promise((resolve, reject) => {
     ffmpeg()

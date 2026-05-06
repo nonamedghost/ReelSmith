@@ -53,7 +53,9 @@ export async function generateScript(topic) {
     const data = await response.json();
 
     // Debug (TEMP — keep this for now)
-    console.log("Gemini raw response:", JSON.stringify(data, null, 2));
+    // console.log("Gemini raw response:", JSON.stringify(data, null, 2));
+    console.log("Gemini response received");
+    console.log("Tokens:", data?.usageMetadata?.totalTokenCount);
 
     // Safe extraction
     if (!data.candidates || !data.candidates.length) {

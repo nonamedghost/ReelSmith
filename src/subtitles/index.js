@@ -1,6 +1,7 @@
 import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
+import {PATHS, FINAL_DIR} from "../utils/paths.js";
 
 
 const colors = [
@@ -29,14 +30,12 @@ function styleSentence(sentence) {
 }
 
 
-const OUTPUT_DIR = "output";
-
 export async function generateSubtitles(audioPath) {
-  const srtPath = path.join(OUTPUT_DIR, "audio.srt");
+  const srtPath = path.join(FINAL_DIR, "audio.srt");
 
   await new Promise((resolve, reject) => {
     exec(
-      `python -m whisper "${audioPath}" --model base --output_format srt --output_dir ${OUTPUT_DIR}`,
+      `python -m whisper "${audioPath}" --model base --output_format srt --output_dir ${FINAL_DIR}`,
       (err) => {
         if (err) return reject(err);
         resolve();
@@ -101,7 +100,7 @@ export function convertSrtToAss(srtPath) {
   ${events.join("\n")}
   `;
 
-  const assPath = path.join(OUTPUT_DIR, "subtitles.ass");
+  const assPath = PATHS.subtitles;
   fs.writeFileSync(assPath, ass);
 
   return assPath;

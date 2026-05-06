@@ -2,9 +2,8 @@
 // 📦 IMPORTS
 // ===============================
 import fs from "fs";
-import path from "path";
 import axios from "axios";
-import { OUTPUT_DIR } from "../utils/paths.js";
+import { PATHS } from "../utils/paths.js";
 
 // ===============================
 // 🔐 API KEY
@@ -34,7 +33,7 @@ export async function fetchBackgroundVideo(query = "nature") {
     // ===============================
     // 🌐 STEP 1: CALL PEXELS API
     // ===============================
-    const url = `https://api.pexels.com/videos/search?query=${query}&per_page=10&orientation=portrait`;
+    const url = `https://api.pexels.com/videos/search?query=${query}&per_page=5&orientation=portrait`;
 
     const response = await axios.get(url, {
       headers: {
@@ -100,10 +99,7 @@ export async function fetchBackgroundVideo(query = "nature") {
     // ===============================
     // 📁 STEP 4: CREATE FILE PATH
     // ===============================
-    const filePath = path.join(
-      OUTPUT_DIR,
-      `bg_${clipCounter}.mp4`
-    );
+    const filePath = PATHS.getBg(clipCounter);
 
     // ===============================
     // ⬇️ STEP 5: DOWNLOAD VIDEO

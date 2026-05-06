@@ -1,6 +1,5 @@
 import fs from "fs";
-import path from "path";
-import { OUTPUT_DIR } from "../utils/paths.js";
+import { PATHS } from "../utils/paths.js";
 
 function formatTime(seconds) {
   const date = new Date(seconds * 1000);
@@ -8,7 +7,7 @@ function formatTime(seconds) {
 }
 
 export function generateSRT(words) {
-  const filePath = path.join(OUTPUT_DIR, "subtitles.srt");
+  const filePath = PATHS.subtitles;
 
   let srt = "";
   let index = 1;
