@@ -15,6 +15,9 @@ import { generateSceneQueries } from "./script/generateSceneQueries.js";
 
 import { generateMergedVideo } from "./video/multiclipVideo.js";
 
+import { generateMetadata } from "./metadata/generateMetadata.js";
+import { saveJson } from "./utils/saveJson.js";
+
 // =======================
 // MAIN PIPELINE
 // =======================
@@ -47,6 +50,22 @@ async function main() {
 
   console.log("Topic:", topic);
   console.log("Script:", script);
+
+  // ==============================
+  // STEP X: GENERATE METADATA
+  // ==============================
+
+  const metadata = await generateMetadata(
+    script,
+    topic
+  );
+  console.log("Metadata:", metadata);
+
+  saveJson(
+    "output/final/metadata.json",
+    metadata
+  );
+  console.log("Metadata saved.");
 
   // Add delay here
   await new Promise(resolve => setTimeout(resolve, 3000));
