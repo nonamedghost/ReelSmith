@@ -18,22 +18,16 @@ import { generateMergedVideo } from "./video/multiclipVideo.js";
 import { generateMetadata } from "./metadata/generateMetadata.js";
 import { saveJson } from "./utils/saveJson.js";
 
-// =======================
 // MAIN PIPELINE
-// =======================
 async function main() {
   cleanup();              // clean temp, clips, final
-  console.log("🧹 Fresh run started...");
   
   await ensureDirectories(); // recreate folders
   console.log("Reels Generator started.");
 
-  // =======================
   // STEP 1: SCRIPT
-  // =======================
   const topics = ["space facts", "animal facts", "science facts"];
   const topic = topics[Math.floor(Math.random() * topics.length)];
-
   const USE_AI = true;
 
   let script;
@@ -47,14 +41,10 @@ async function main() {
     console.log("AI failed, using fallback...");
     script = generateScriptDummy();
   }
-
   console.log("Topic:", topic);
   console.log("Script:", script);
 
-  // ==============================
   // STEP X: GENERATE METADATA
-  // ==============================
-
   const metadata = await generateMetadata(
     script,
     topic
@@ -68,29 +58,22 @@ async function main() {
   console.log("Metadata saved.");
 
   // Add delay here
-  await new Promise(resolve => setTimeout(resolve, 3000));
+  // await new Promise(resolve => setTimeout(resolve, 3000));
 
-  // =======================
   // STEP 2: Generate Speech TTS
-  // =======================
   const audio = await generateSpeech(script);
   console.log("Audio path:", audio);
 
-  // =======================
   // STEP 3: Generate SUBTITLES
-  // =======================
   const words = await transcribeAudio(audio);
   const subtitles = generateSRT(words);
   console.log("Subtitles path:", subtitles);
 
-  // =======================
   // STEP 4: MULTI-SCENE CLIPS
-  // =======================
   let clips = [];
 
   try {    
-    const queries = await generateSceneQueries(script);
-    console.log("Scene queries:", queries);
+    const queries = await generateSceneQueries(script); // openrouter
 
     for (const q of queries) {
       try {
@@ -117,25 +100,12 @@ async function main() {
     const fallback = await fetchBackgroundVideo(topic);
     clips.push(fallback);
   }
-
   console.log("Final clips:", clips);
 
-  // =======================
   // STEP 5: FINAL VIDEO
-  // =======================
   const video = await generateMergedVideo(audio, subtitles, clips);
-
   console.log("Video path:", video);
   console.log("Pipeline complete.");
 }
 
 main().catch(console.error);
-
-/*
-✅ What you fixed (important)
-✔ No duplicate logic
-✔ No unused variables (bgVideo)
-✔ Clean multi-clip pipeline
-✔ Proper order of operations
-✔ Future-proof structure
-*/ 

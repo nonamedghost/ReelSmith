@@ -1,38 +1,25 @@
-// ===============================
-// 📦 IMPORTS
-// ===============================
 import fs from "fs";
 import axios from "axios";
 import { PATHS } from "../utils/paths.js";
 
-// ===============================
 // 🔐 API KEY
-// ===============================
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
 
-// ===============================
 // 🧠 GLOBAL TRACKING (DEDUPLICATION)
 // Prevents same video being reused
-// ===============================
 const usedVideoIds = new Set();
 const usedVideoUrls = new Set();
 
-// ===============================
 // 🔢 SIMPLE COUNTER FOR FILE NAMES
-// ===============================
 let clipCounter = 0;
 
-// ===============================
 // 🎬 MAIN FUNCTION
 // Fetches a UNIQUE background video
-// ===============================
 export async function fetchBackgroundVideo(query = "nature") {
   try {
     clipCounter++;
 
-    // ===============================
     // 🌐 STEP 1: CALL PEXELS API
-    // ===============================
     const url = `https://api.pexels.com/videos/search?query=${query}&per_page=5&orientation=portrait`;
 
     const response = await axios.get(url, {
@@ -52,7 +39,6 @@ export async function fetchBackgroundVideo(query = "nature") {
     // Avoid duplicates using:
     // - video.id
     // - video file URL
-    // ===============================
     let selectedVideo = null;
     let selectedFile = null;
 
@@ -77,9 +63,7 @@ export async function fetchBackgroundVideo(query = "nature") {
       }
     }
 
-    // ===============================
     // ⚠️ STEP 3: FALLBACK IF NO UNIQUE
-    // ===============================
     if (!selectedVideo || !selectedFile) {
       console.log("⚠️ No unique video found, using fallback...");
 
@@ -96,14 +80,10 @@ export async function fetchBackgroundVideo(query = "nature") {
 
     const videoUrl = selectedFile.link;
 
-    // ===============================
     // 📁 STEP 4: CREATE FILE PATH
-    // ===============================
     const filePath = PATHS.getBg(clipCounter);
 
-    // ===============================
     // ⬇️ STEP 5: DOWNLOAD VIDEO
-    // ===============================
     const res = await axios({
       method: "GET",
       url: videoUrl,
@@ -117,7 +97,6 @@ export async function fetchBackgroundVideo(query = "nature") {
       writer.on("finish", resolve);
       writer.on("error", reject);
     });
-
     console.log("✅ Background video downloaded:", filePath);
 
     return filePath;

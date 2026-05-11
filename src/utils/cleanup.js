@@ -14,7 +14,7 @@ const folders = [
 ];
 
 export default function cleanup() {
-  console.log("🧹 Cleaning output folders...");
+  // console.log("🧹 Cleaning output folders...");
 
   // Clean subfolders completely
   for (const folder of folders) {

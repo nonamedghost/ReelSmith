@@ -1,6 +1,3 @@
-// ===============================
-// 📦 IMPORTS
-// ===============================
 import path from "path";
 import fs from "fs-extra";
 import ffmpeg from "fluent-ffmpeg";
@@ -8,21 +5,15 @@ import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
 import { PATHS, CLIPS_DIR, FINAL_DIR } from "../utils/paths.js";
 
-// ===============================
 // ⚙️ SETUP FFMPEG PATHS
-// ===============================
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 ffmpeg.setFfprobePath(ffprobeInstaller.path);
 
-// ===============================
 // 📁 FINAL OUTPUT FILE
-// ===============================
 const OUTPUT_FILE = PATHS.finalVideo;
 
-// ===============================
 // 🔍 GET AUDIO DURATION (IMPORTANT)
 // Used to sync video length with audio
-// ===============================
 function getAudioDuration(audioPath) {
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(audioPath, (err, metadata) => {
@@ -38,7 +29,6 @@ function getAudioDuration(audioPath) {
 // - Locks FPS to 30
 // - Removes audio
 // - Optionally loops if only 1 clip
-// ===============================
 async function normalizeClip(input, output, duration, shouldLoop) {
   return new Promise((resolve, reject) => {
     let command = ffmpeg(input)
@@ -61,7 +51,6 @@ async function normalizeClip(input, output, duration, shouldLoop) {
     if (shouldLoop) {
       command = command.inputOptions(["-stream_loop -1"]);
     }
-
     command
       .setDuration(duration) // trim to match audio or portion
       .on("end", resolve)
@@ -70,26 +59,18 @@ async function normalizeClip(input, output, duration, shouldLoop) {
   });
 }
 
-// ===============================
 // 🧠 MAIN FUNCTION
-// ===============================
 export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
-
-  // ===============================
   // 🛑 VALIDATION
-  // ===============================
   if (!audioPath || typeof audioPath !== "string") {
     throw new Error("Invalid audio path");
   }
-
   if (!Array.isArray(clipPaths) || clipPaths.length === 0) {
     throw new Error("No clips provided");
   }
-
   if (!(await fs.pathExists(audioPath))) {
     throw new Error(`Audio file not found: ${audioPath}`);
   }
-
   for (const clip of clipPaths) {
     if (!(await fs.pathExists(clip))) {
       throw new Error(`Clip not found: ${clip}`);
@@ -100,9 +81,7 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
   await fs.ensureDir(CLIPS_DIR);
   await fs.ensureDir(FINAL_DIR);
 
-  // ===============================
   // ⏱️ CALCULATE DURATIONS
-  // ===============================
   const totalDuration = await getAudioDuration(audioPath);
   const clipsCount = clipPaths.length;
 
@@ -112,19 +91,15 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
     clipsCount === 1
       ? totalDuration
       : totalDuration / clipsCount;
-
   console.log(`Total audio duration: ${totalDuration}s`);
   console.log(`Clip duration: ${clipDuration}s`);
 
-  // ===============================
   // 🎬 STEP 1: NORMALIZE CLIPS
-  // ===============================
   const normalizedClips = [];
 
   for (let i = 0; i < clipPaths.length; i++) {
     const input = clipPaths[i];
     const output = PATHS.getClip(i);
-
     console.log(`Normalizing clip ${i + 1}...`);
 
     await normalizeClip(
@@ -133,13 +108,10 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
       clipDuration,
       clipsCount === 1 // loop if only one clip
     );
-
     normalizedClips.push(output);
   }
 
-  // ===============================
   // 📝 STEP 2: CREATE CONCAT FILE
-  // ===============================
   const concatFile = PATHS.concat;
 
   const concatContent = normalizedClips
@@ -148,10 +120,8 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
 
   await fs.writeFile(concatFile, concatContent);
 
-  // ===============================
   // 🔗 STEP 3: MERGE CLIPS (FAST MODE)
   // Uses copy since clips are already normalized
-  // ===============================
   const mergedVideo = PATHS.merged;
 
   await new Promise((resolve, reject) => {
@@ -176,7 +146,6 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
   // - Adds audio
   // - Adds subtitles
   // - Ensures format consistency
-  // ===============================
   const safeSubtitlePath = subtitlePath
     .replace(/\\/g, "/")
     .replace(/:/g, "\\:");
@@ -194,13 +163,10 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
       .outputOptions([
         "-map 0:v:0",         // video
         "-map 1:a:0",         // audio
-
         "-c:v libx264",
         "-preset ultrafast",  // best for weak CPU
         "-crf 28",
-
         "-c:a aac",
-
         "-r 30",
         "-shortest",          // match audio length
       ])
