@@ -20,19 +20,30 @@ async function fetchWithRetry(fn, retries = 3) {
 }
 
 export async function generateScript(topic) {
-  const prompt = `
-Create a short, engaging YouTube Shorts script.
 
-Topic: ${topic}
+const prompt = `
+  Create a highly engaging YouTube Shorts script.
 
-Rules:
-- Max 2 to 3 sentences
-- Hook in first line
-- Simple conversational tone
-- No emojis
-- No formatting
+  Topic: ${topic}
 
-Only return the script text.
+  Requirements:
+  - Around 40 to 70 words
+  - Designed for 15 to 30 second narration
+  - Strong hook in first sentence
+  - Maintain curiosity throughout
+  - Simple conversational tone
+  - Easy to understand
+  - No emojis
+  - No markdown
+  - No bullet points
+  - Avoid repetitive phrasing
+  - Make the narration feel natural and human
+  - Each sentence should create a visual opportunity
+  - No labels like "Hook:" or "Narrator:"
+  - Keep pacing fast and engaging
+  - End with a surprising payoff.
+
+  Only return the final script text.
 `;
 
   const text = await fetchWithRetry(() =>
