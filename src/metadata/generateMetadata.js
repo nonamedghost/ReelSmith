@@ -1,5 +1,8 @@
 // GROQ PROVIDER IMPORT
 import { generateGroqCompletion } from "../ai/providers/groq.js";
+// UTILS IMPORT & PATHS
+import { saveJson } from "../utils/saveJson.js";
+import { PATHS } from "../utils/paths.js";
 // GENERATE METADATA
 export async function generateMetadata(script, topic = "") {
 
@@ -73,6 +76,10 @@ export async function generateMetadata(script, topic = "") {
         // replace spaces with dashes
         .replace(/\s+/g, "-");
     }
+
+    // SAVE METADATA TO FILE
+    saveJson(PATHS.metadata, metadata);
+    console.log("Metadata saved.");
 
     // RETURN CLEAN METADATA
     return metadata;

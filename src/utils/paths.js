@@ -27,6 +27,7 @@ export const PATHS = {
   concat: path.join(CLIPS_DIR, "concat.txt"),
 
   merged: path.join(FINAL_DIR, "merged.mp4"),
+  metadata: path.join(FINAL_DIR, "metadata.json"),
   subtitles: path.join(FINAL_DIR, "subtitles.srt"),
   finalVideo: path.join(FINAL_DIR, "video.mp4"),
 };

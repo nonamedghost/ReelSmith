@@ -27,6 +27,12 @@ AVOID:
 - metaphors
 - emotions alone
 
+Avoid overused space facts like:
+- Venus day longer than year
+- Jupiter storm
+- black holes
+unless highly relevant.
+
 GOOD examples:
 "man walking rainy street"
 "busy city traffic night"
