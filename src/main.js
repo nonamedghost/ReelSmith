@@ -17,6 +17,8 @@ import { generateMetadata } from "./metadata/generateMetadata.js";
 import validateOutput from "./utils/validateOutput.js";
 
 import {logInfo, logError, logWarn} from "./utils/logger.js";
+// YouTube Upload
+import { uploadYoutubeVideo } from "./youtube/uploadYoutube.js";
 
 // MAIN PIPELINE
 async function main() {
@@ -127,6 +129,20 @@ async function main() {
   logInfo("Output validation passed");
   console.log("Pipeline complete.");
   logInfo("Pipeline completed successfully");
+
+  // STEP 7: UPLOAD TO YOUTUBE
+  try {
+    const uploadResult = await uploadYoutubeVideo({
+      videoPath: video,
+      metadata,
+    });
+
+    logInfo(`YouTube upload complete: ${uploadResult.id}`);
+
+  } catch (err) {
+    logError(`YouTube upload failed: ${err.message}`);
+  }
+
 }
 
 main().catch(console.error);

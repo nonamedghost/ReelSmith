@@ -1,3 +1,5 @@
 node_modules/
 .env
 output/
+credentials.json
+token.json
