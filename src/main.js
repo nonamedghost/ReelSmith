@@ -6,13 +6,13 @@ import { generateScriptDummy } from "./script/index.js";
 import { generateSpeech } from "./tts/deepgramTTS.js";
 import { transcribeAudio } from "./subtitles/deepgramSTT.js";
 import { generateSRT } from "./subtitles/generateSRT.js";
-import { fetchBackgroundVideo } from "./video/fetchBackground.js";
-import { generateSceneQueries } from "./script/generateSceneQueries.js";
+import { generateClips } from "./video/generateClips.js";
 import { generateMergedVideo } from "./video/multiclipVideo.js";
 import { generateMetadata } from "./metadata/generateMetadata.js";
 import validateOutput from "./utils/validateOutput.js";
 import {logInfo, logError, logWarn, logRunStart, logRunEnd} from "./utils/logger.js";
 import { uploadYoutubeVideo } from "./youtube/uploadYoutube.js";
+import { getRandomTopic } from "./data/categories.js";
 
 // MAIN PIPELINE
 async function main() {
@@ -23,8 +23,9 @@ async function main() {
   logInfo("Reels Generator started.");
 
   // STEP 1: SCRIPT
-  const topics = ["space facts", "animal facts", "science facts"];
-  const topic = topics[Math.floor(Math.random() * topics.length)];
+  // const topics = ["space facts", "animal facts", "science facts"];
+  // const topic = topics[Math.floor(Math.random() * topics.length)];
+  const { category, topic } = getRandomTopic();
   const USE_AI = true;
   let script;
 
@@ -35,7 +36,7 @@ async function main() {
   } catch (err) {
     logError(`❌ AI script generation failed: ${err.message}`);
     console.log("❌ Gemini ERROR:", err);
-    console.log("❌ AI failed, using fallback...");
+    console.log("❌ AI Script failed, using fallback...");
     script = generateScriptDummy();
   }
   logInfo(`✅ Topic selected: ${topic}`);
@@ -61,41 +62,12 @@ async function main() {
   logInfo("✅ Subtitles generated");
 
   // STEP 5: MULTI-SCENE CLIPS
-  let clips = [];
-
-  try {    
-    const queries = await generateSceneQueries(script); // openrouter
-    logInfo(`Generated ${queries.length} scene queries`);
-
-    for (const q of queries) {
-      try {
-        const clip = await fetchBackgroundVideo(q);
-
-        if (clip) {
-          console.log("Fetched clip for:", q, "->", clip);
-          clips.push(clip);
-        }
-      } catch (err) {
-        console.log("Failed for query:", q);
-        logWarn(`Failed fetching clip for query: ${q}`);
-      }
-    }
-
-    if (clips.length === 0) {
-      console.log("No clips found, using fallback...");
-      logWarn("No clips found, using fallback clip");
-      const fallback = await fetchBackgroundVideo(topic);
-      clips.push(fallback);
-    }
-
-  } catch (err) {
-    console.log("Scene generation failed, using fallback...");
-    // fallback → use topic
-    const fallback = await fetchBackgroundVideo(topic);
-    clips.push(fallback);
-  }
-  // console.log("Final clips:", clips);
-  logInfo(`✅ Downloaded ${clips.length} clips`);
+  const clips = await generateClips({
+    script,
+    topic,
+    logInfo,
+    logWarn
+  });
 
   // STEP 6: FINAL VIDEO
   logInfo("Final rendering started");
@@ -114,7 +86,6 @@ async function main() {
     process.exit(1);
   }
   logInfo("✅ Output validation passed");
-  // logInfo("✅ Pipeline completed successfully");
 
   // STEP 8: UPLOAD TO YOUTUBE
   try {

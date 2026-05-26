@@ -1,0 +1,51 @@
+import { generateSceneQueries } from "../script/generateSceneQueries.js";
+import { fetchBackgroundVideo } from "./fetchBackground.js";
+
+export async function generateClips({ script, topic, logInfo, logWarn }) {
+  let clips = [];
+
+  try {
+    // STEP 1: Generate scene queries
+    const queries = await generateSceneQueries(script); // openrouter
+
+    logInfo(`✅ Generated ${queries.length} scene queries`);
+
+    // STEP 2: Fetch clips
+    for (const q of queries) {
+      try {
+        const clip = await fetchBackgroundVideo(q);
+
+        if (clip) {
+          console.log("Fetched clip for:", q, "->", clip);
+          clips.push(clip);
+        }
+
+      } catch (err) {
+        console.log("Failed for query:", q);
+        logWarn(`Failed fetching clip for query: ${q}`);
+      }
+    }
+
+    // STEP 3: Fallback if no clips
+    if (clips.length === 0) {
+      console.log("❌ No clips found, using fallback clip...");
+      logWarn("❌ No clips found, using fallback clip");
+
+      const fallback = await fetchBackgroundVideo(topic);
+
+      clips.push(fallback);
+    }
+
+  } catch (err) {
+    // FULL FAILURE FALLBACK
+    console.log("❌ Scene generation failed, using fallback...", err.message);
+    logWarn(`Scene generation failed: ${err.message}`);
+    const fallback = await fetchBackgroundVideo(topic);
+
+    clips.push(fallback);
+  }
+  // console.log("Final clips:", clips);
+  logInfo(`✅ Downloaded ${clips.length} clips`);
+
+  return clips;
+}
