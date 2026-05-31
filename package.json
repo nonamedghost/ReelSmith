@@ -13,6 +13,7 @@
     "@deepgram/sdk": "^5.0.0",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@ffprobe-installer/ffprobe": "^2.1.2",
+    "@google/genai": "^2.6.0",
     "axios": "^1.15.0",
     "dotenv": "^16.6.1",
     "fluent-ffmpeg": "^2.1.3",
