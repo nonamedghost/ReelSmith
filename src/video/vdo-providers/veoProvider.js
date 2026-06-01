@@ -1,25 +1,35 @@
 import "dotenv/config";
 import fs from "fs-extra";
 import { GoogleGenAI } from "@google/genai";
+import path from "path";
+import { PATHS } from "../../utils/paths.js";
+
 // Vertex AI Client
 // Uses ADC authentication: gcloud auth application-default login
-
 const ai = new GoogleGenAI({
   vertexai: true,
   project: "project-85ff445b-674b-4647-b23",
   location: "us-central1",
 });
 
+// 🔢 SIMPLE COUNTER FOR FILE NAMES
+let clipCounter = 0;
+
 export default {
   /**
    * Generate a Veo video and save it locally
    *
    * @param {string} prompt
-   * @param {string} outputPath
+   * @param {string} filePath
    * @returns {Promise<string>}
    */
-  async generate(prompt, outputPath) {
+  async generate(prompt) {
     try {
+      clipCounter++;
+
+      // Same path strategy as Pexels
+      const filePath = PATHS.getBg(clipCounter);
+
       console.log("🎬 Generating Veo clip...");
       console.log(`📝 Prompt: ${prompt}`);
 
@@ -76,21 +86,18 @@ export default {
         "base64"
       );
 
-      // Ensure directory exists
+      // Ensure output directory exists
       await fs.ensureDir(
-        outputPath.substring(
-          0,
-          outputPath.lastIndexOf("/")
-        )
+        path.dirname(filePath)
       );
 
-      await fs.writeFile(outputPath, buffer);
+      // Save file
+      await fs.writeFile(filePath, buffer);
 
-      console.log(`✅ Saved Veo clip`);
-      console.log(`📁 ${outputPath}`);
+      console.log(`✅ Saved Veo clip to ${filePath}`);
       console.log(`📦 Size: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`);
 
-      return outputPath;
+      return filePath;
     } catch (error) {
       console.error("❌ Veo generation failed");
       console.error(error);

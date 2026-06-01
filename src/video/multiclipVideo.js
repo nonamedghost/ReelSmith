@@ -4,6 +4,7 @@ import ffmpeg from "fluent-ffmpeg";
 import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
 import { PATHS, CLIPS_DIR, FINAL_DIR } from "../utils/paths.js";
+import {MODE} from "./vdo-providers/index.js"
 
 // ⚙️ SETUP FFMPEG PATHS
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
@@ -102,11 +103,14 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
     const output = PATHS.getClip(i);
     console.log(`Normalizing clip ${i + 1}...`);
 
+    const shouldLoop = MODE === "veo"
     await normalizeClip(
       input,
       output,
       clipDuration,
-      clipsCount === 1 // loop if only one clip
+      // clipsCount === 1 // loop if only one clip
+      // true // always allow looping
+      shouldLoop
     );
     normalizedClips.push(output);
   }

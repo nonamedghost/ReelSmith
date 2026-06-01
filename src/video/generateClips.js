@@ -24,8 +24,8 @@ export async function generateClips({ script, topic, logInfo, logWarn }) {
         }
 
       } catch (err) {
-        console.log("Failed for query:", q);
-        logWarn(`Failed fetching clip for query: ${q}`);
+        console.log("Failed for query:", q, err.message);
+        logWarn(`Failed fetching clip for query: ${q} - ${err.message}`);
       }
     }
 
@@ -35,7 +35,7 @@ export async function generateClips({ script, topic, logInfo, logWarn }) {
       logWarn("❌ No clips found, using fallback clip");
 
       // const fallback = await fetchBackgroundVideo(topic);
-      const fallback = await provider.generate(topic)
+      const fallback = await provider.generate(topic);
 
       clips.push(fallback);
     }
