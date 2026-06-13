@@ -12,6 +12,7 @@ export function getNextClipPath(PATHS) {
     return PATHS.getBg(clipCounter);
 }
 
+// 📦 SAVE BUFFER TO FILE
 export async function saveBuffer(filePath, buffer) {
     await fs.ensureDir(path.dirname(filePath));
     await fs.writeFile(filePath, buffer);

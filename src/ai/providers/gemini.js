@@ -20,9 +20,14 @@ export async function generateWithGemini(prompt) {
     }
   );
 
-  if (!response.ok) {
-    throw new Error(`Gemini API failed: ${response.status}`);
-  }
+if (!response.ok) {
+  const errorText = await response.text();
+
+  console.log("Status:", response.status);
+  console.log("Error Response:", errorText);
+
+  throw new Error(`Gemini API failed: ${response.status}`);
+}
 
   const data = await response.json();
 

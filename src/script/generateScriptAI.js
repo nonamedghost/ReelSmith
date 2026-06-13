@@ -1,4 +1,5 @@
 import { generateWithGemini } from "../ai/providers/gemini.js";
+import { generateWithVertex } from "../ai/providers/vertex.js";
 
 // Retry helper
 async function fetchWithRetry(fn, retries = 3) {
@@ -47,11 +48,12 @@ const prompt = `
 `;
 
   const text = await fetchWithRetry(() =>
-    generateWithGemini(prompt)
+    //generateWithGemini(prompt)
+    generateWithVertex(prompt)
   );
 
   // Debug (TEMP — keep this for now)
-  console.log("Gemini response received");
+  console.log("Vertex AI response received");
 
   return text.trim();
 }

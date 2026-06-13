@@ -9,6 +9,7 @@ import { fetchBackgroundVideo } from "../fetchBackground.js";
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
 
 export default {
+  type: "stock",
   
   async generate(query) {
     return await fetchBackgroundVideo(query);

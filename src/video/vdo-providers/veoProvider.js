@@ -16,6 +16,7 @@ const ai = new GoogleGenAI({
 let clipCounter = 0;
 
 export default {
+  type: "ai",
   /**
    * Generate a Veo video and save it locally
    *
