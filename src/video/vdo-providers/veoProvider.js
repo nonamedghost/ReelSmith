@@ -43,7 +43,7 @@ export default {
           numberOfVideos: 1,
           generateAudio: false,
           aspectRatio: "9:16",
-          durationSeconds: 4,
+          durationSeconds: 8,
           resolution: "720p",
           personGeneration: "allow_all",
         },
@@ -54,8 +54,8 @@ export default {
 
       // STEP 2: Poll until finished
       while (!operation.done) {
-        console.log("⌛ Still processing... checking again in 15 seconds");
-
+        // Debug
+        // console.log("⌛ Still processing... checking again in 15 seconds");
         await new Promise((resolve) =>  setTimeout(resolve, 15000));
 
         // Refresh the operation status
@@ -95,8 +95,8 @@ export default {
       // Save file
       await fs.writeFile(filePath, buffer);
 
-      console.log(`✅ Saved Veo clip to ${filePath}`);
-      console.log(`📦 Size: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`);
+      console.log(`✅ Saved Veo clip to ${filePath}, 📦 Size: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`);
+      // console.log(`📦 Size: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`);
 
       return filePath;
     } catch (error) {

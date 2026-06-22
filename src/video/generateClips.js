@@ -25,7 +25,8 @@ export async function generateClips({ script, topic, logInfo, logWarn }) {
         const clip = await provider.generate(scene);
 
         if (clip) {
-          console.log("Fetched clip for:",scene,"->",clip);
+          // Debug
+          // console.log("Fetched clip for:",scene,"->",clip);
           clips.push(clip);
         }
 
