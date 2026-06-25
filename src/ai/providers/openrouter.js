@@ -13,7 +13,8 @@ export async function generateWithOpenRouter(prompt) {
         },
 
         body: JSON.stringify({
-          model: "deepseek/deepseek-chat",
+          // model: "deepseek/deepseek-chat",
+          model: process.env.OPENROUTER_MODEL,
 
           messages: [
             {

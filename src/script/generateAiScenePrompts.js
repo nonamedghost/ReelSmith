@@ -19,6 +19,8 @@ export async function generateAiScenePrompts(script) {
       prompts
     } = result;
 
+    // console.log("RECEIVED:", prompts); // Debugging: Log the prompts being received
+
     // SAVE RAW OUTPUT IN LOGS FOLDER
     // FOR DEBUGGING PURPOSES
     fs.mkdirSync("output/logs", { recursive: true });
@@ -26,6 +28,7 @@ export async function generateAiScenePrompts(script) {
     const logEntry = [
       "",
       "===== AI SCENE PROMPTS =====",
+      `MODEL: ${process.env.OPENROUTER_MODEL}`,
       `TIMESTAMP: ${new Date().toISOString()}`,
       "",
       "SCRIPT:",

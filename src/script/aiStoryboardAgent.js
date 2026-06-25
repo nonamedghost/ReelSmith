@@ -103,12 +103,12 @@ Scene 3:
 
 For each prompt describe:
 
-- main subject
-- environment
-- atmosphere
-- motion
-- lighting
-- camera movement
+- Focus only on the most important visual elements.
+- Keep prompts concise and cinematic.
+- 35 to 60 words maximum.
+- Use short, direct visual descriptions.
+- Mention camera movement only if important.
+- Prioritize subject and environment over extra details.
 
 Rules:
 
@@ -128,7 +128,8 @@ Rules:
 - no explanations
 
 - one paragraph per prompt
-- maximum 80 words per prompt
+- maximum 60 words per prompt
+- ideal length 40-50 words
 
 Return ONLY JSON:
 
@@ -164,6 +165,8 @@ export async function generateVideoPrompts(script) {
   .filter(p => typeof p === "string")
   .map(p => p.trim())
   .filter(p => p.length > 20);
+
+  // console.log("RETURNING:", result.prompts); // Debugging: Log the prompts being returned
 
   return {
     analysis,

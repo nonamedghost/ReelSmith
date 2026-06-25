@@ -8,8 +8,8 @@ import { PATHS } from "../../utils/paths.js";
 // Uses ADC authentication: gcloud auth application-default login
 const ai = new GoogleGenAI({
   vertexai: true,
-  project: "project-85ff445b-674b-4647-b23",
-  location: "us-central1",
+  project: process.env.GCP_PROJECT_ID,
+  location: process.env.GCP_LOCATION,
 });
 
 // 🔢 SIMPLE COUNTER FOR FILE NAMES
@@ -96,7 +96,6 @@ export default {
       await fs.writeFile(filePath, buffer);
 
       console.log(`✅ Saved Veo clip to ${filePath}, 📦 Size: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`);
-      // console.log(`📦 Size: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`);
 
       return filePath;
     } catch (error) {
