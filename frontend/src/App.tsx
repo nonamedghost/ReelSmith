@@ -114,6 +114,14 @@ function App() {
       </section>
 
       <div className="ticks"></div>
+
+      <div className="mx-auto my-6 max-w-md rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 p-6 text-white shadow-lg transform hover:scale-105 transition-transform duration-300">
+        <h3 className="text-xl font-bold mb-2">Tailwind CSS v4 Active!</h3>
+        <p className="text-sm opacity-90">
+          This banner is styled using Tailwind utility classes. If it displays with a purple gradient background, rounded corners, and white text, Tailwind is working perfectly.
+        </p>
+      </div>
+
       <section id="spacer"></section>
     </>
   )
