@@ -1,0 +1,53 @@
+import apiClient from './client';
+
+export interface ReelGenerationParams {
+  topic: string;
+  scriptText?: string;
+  voice: string;
+  provider: string;
+  uploadToYoutube: boolean;
+}
+
+export interface ReelMetadata {
+  title: string;
+  description: string;
+  tags: string[];
+}
+
+export interface Reel {
+  id: string;
+  topic: string;
+  script: string;
+  voice: string;
+  provider: string;
+  createdAt: string;
+  videoPath: string;
+  youtubeUploadStatus: 'idle' | 'pending' | 'success' | 'failed';
+  youtubeVideoId?: string;
+  metadata?: ReelMetadata;
+}
+
+export const getRandomTopic = async () => {
+  const response = await apiClient.get<{ category: string; topic: string }>('/api/topics/random');
+  return response.data;
+};
+
+export const generateReel = async (params: ReelGenerationParams) => {
+  const response = await apiClient.post<{ jobId: string }>('/api/reels/generate', params);
+  return response.data;
+};
+
+export const getReels = async () => {
+  const response = await apiClient.get<Reel[]>('/api/reels');
+  return response.data;
+};
+
+export const getLatestReel = async () => {
+  const response = await apiClient.get<Reel>('/api/reels/latest');
+  return response.data;
+};
+
+export const deleteReel = async (id: string) => {
+  const response = await apiClient.delete<{ success: boolean }>(`/api/reels/${id}`);
+  return response.data;
+};
