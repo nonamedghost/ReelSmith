@@ -1,10 +1,13 @@
-node_modules/
-.env
+# Backend
 
-output/
-logs/
+backend/node_modules/
+backend/.env
+backend/output/
+backend/logs/
+backend/credentials.json
+backend/token.json
 
-credentials.json
-token.json
+
+# Frontend
 
 zdocs/
