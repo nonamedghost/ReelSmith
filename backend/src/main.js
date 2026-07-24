@@ -1,4 +1,11 @@
 import "dotenv/config";
+import { runPipeline } from "./pipeline/runPipeline.js";
+
+runPipeline().catch(console.error);
+
+
+/*
+import "dotenv/config";
 import cleanup from "./utils/cleanup.js";
 import { ensureDirectories } from "./utils/paths.js";
 import { generateScript } from "./script/generateScriptAI.js";
@@ -105,3 +112,4 @@ async function main() {
 }
 
 main().catch(console.error);
+*/
