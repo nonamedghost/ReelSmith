@@ -1,5 +1,5 @@
-import { generateScript } from "./src/script/generateScriptAi.js";
-import { generateAiScenePrompts } from "./src/script/generateAiScenePrompts.js";
+import { generateScript } from "../src/script/generateScriptAi.js";
+import { generateAiScenePrompts } from "../src/script/generateAiScenePrompts.js";
 
 const animeTopics = [
   "attack on titan secrets",

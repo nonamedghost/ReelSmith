@@ -1,4 +1,4 @@
-import veoProvider from "./src/video/vdo-providers/veoProvider.js";
+import veoProvider from "../src/video/vdo-providers/veoProvider.js";
 
 await veoProvider.generate(
   "cat walking in a garden",
