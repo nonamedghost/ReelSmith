@@ -1,12 +1,8 @@
 import { Router } from "express";
+import { getHealth } from "../controllers/healthController.js";
 
 const router = Router();
 
-router.get("/health", (req, res) => {
-    res.json({
-        status: "ok",
-        message: "Backend is running",
-    });
-});
+router.get("/health", getHealth);
 
 export default router;
