@@ -15,7 +15,19 @@ import { uploadYoutubeVideo } from "../youtube/uploadYoutube.js";
 import { getRandomTopic } from "../data/categories.js";
 
 // MAIN PIPELINE
-export async function runPipeline() {
+export async function runPipeline({
+    topic,
+    provider,
+    uploadToYoutube = true,
+} = {}) {
+    // delete these 5-6 lins after testing
+    // console.log({
+    //     topic,
+    //     provider,
+    //     uploadToYoutube,
+    // });
+
+    // return;
 
     cleanup();              // clean temp, clips, final
     logRunStart();          // log run start
@@ -25,7 +37,11 @@ export async function runPipeline() {
     // STEP 1: SCRIPT
     // const topics = ["space facts", "animal facts", "science facts"];
     // const topic = topics[Math.floor(Math.random() * topics.length)];
-    const { category, topic } = getRandomTopic();
+    // const { category, topic } = getRandomTopic();
+    let category;
+    if (!topic) {
+        ({ category, topic } = getRandomTopic());
+    }
     const USE_AI = true;
     let script;
 
@@ -39,6 +55,7 @@ export async function runPipeline() {
         console.log("❌ AI Script failed, using fallback...");
         script = generateScriptDummy();
     }
+    logInfo(`📂 Category selected: ${category}`);
     logInfo(`✅ Topic selected: ${topic}`);
     console.log("✅ Script:", script);
     logInfo("✅ Script generated successfully");
@@ -65,6 +82,7 @@ export async function runPipeline() {
     const clips = await generateClips({
         script,
         topic,
+        provider,
         logInfo,
         logWarn
     });
@@ -88,18 +106,25 @@ export async function runPipeline() {
     logInfo("✅ Output validation passed");
 
     // STEP 8: UPLOAD TO YOUTUBE
-    try {
-        const uploadResult = await uploadYoutubeVideo({
-            videoPath: video,
-            metadata,
-        });
+    if (uploadToYoutube) {
+        try {
+            const uploadResult = await uploadYoutubeVideo({
+                videoPath: video,
+                metadata,
+            });
 
-        logInfo(`✅ YouTube upload complete: ${uploadResult.id}`);
+            logInfo(`✅ YouTube upload complete: ${uploadResult.id}`);
+            logRunEnd(true);
+
+        } catch (err) {
+            logError(`❌ YouTube upload failed: ${err.message}`);
+            logRunEnd(false);
+            throw err;
+        }
+
+    } else {
+        logInfo("⏭️ Skipping YouTube upload");
         logRunEnd(true);
-
-    } catch (err) {
-        logError(`❌ YouTube upload failed: ${err.message}`);
-        logRunEnd(false);
     }
 
 }

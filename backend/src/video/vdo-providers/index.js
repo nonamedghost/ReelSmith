@@ -3,8 +3,8 @@ import veoProvider from "./veoProvider.js";
 
 export const MODE = "veo"; // change later if needed
 
-export function getVideoProvider() {
-  switch (MODE) {
+export function getVideoProvider(mode = MODE) {
+  switch (mode) {
     case "veo":
       return veoProvider;
 

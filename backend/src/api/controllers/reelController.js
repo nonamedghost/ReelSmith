@@ -2,7 +2,24 @@ import { runPipeline } from "../../pipeline/runPipeline.js";
 
 export async function generateReel(req, res) {
     try {
-        await runPipeline();
+        const { topic, provider, uploadToYoutube } = req.body;
+
+        // console.log({
+        //     topic,
+        //     provider,
+        //     uploadToYoutube,
+        // });
+        // console.log(req.body); // for testing
+
+        // return res.json({
+        //     success: true,
+        //     body: req.body,
+        // });
+        await runPipeline({
+            topic,
+            provider,
+            uploadToYoutube,
+        });
 
         res.json({
             success: true,

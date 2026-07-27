@@ -2,15 +2,22 @@ import { generateSceneQueries } from "../script/generateSceneQueries.js";
 import { generateAiScenePrompts } from "../script/generateAiScenePrompts.js";
 import { getVideoProvider } from "./vdo-providers/index.js";
 
-export async function generateClips({ script, topic, logInfo, logWarn }) {
+export async function generateClips({ script, topic, provider, logInfo, logWarn }) {
   let clips = [];
-  const provider = getVideoProvider();
+  const videoProvider = getVideoProvider(provider);
+  // testing
+  // console.log({
+  //   requestedProvider: provider,
+  //   providerType: videoProvider.type,
+  // });
+
+  // return [];
 
   try {
     // STEP 1: Generate scenes based on provider type
     let scenes;
 
-    if (provider.type === "ai") {
+    if (videoProvider.type === "ai") {
       scenes = await generateAiScenePrompts(script);
       logInfo(`✅ Generated ${scenes.length} AI scene prompts`);
 
@@ -22,7 +29,7 @@ export async function generateClips({ script, topic, logInfo, logWarn }) {
     // STEP 2: Generate / Fetch clips
     for (const scene of scenes) {
       try {
-        const clip = await provider.generate(scene);
+        const clip = await videoProvider.generate(scene);
 
         if (clip) {
           // Debug
@@ -31,7 +38,7 @@ export async function generateClips({ script, topic, logInfo, logWarn }) {
         }
 
       } catch (err) {
-        console.log("Failed for scene:",scene,err.message);
+        console.log("Failed for scene:", scene, err.message);
         logWarn(`Failed fetching clip for scene: ${scene} - ${err.message}`);
       }
     }
@@ -41,15 +48,15 @@ export async function generateClips({ script, topic, logInfo, logWarn }) {
       console.log("❌ No clips found, using fallback clip...");
       logWarn("❌ No clips found, using fallback clip");
 
-      const fallback = await provider.generate(topic);
+      const fallback = await videoProvider.generate(topic);
       clips.push(fallback);
     }
   } catch (err) {
     // FULL FAILURE FALLBACK
-    console.log("❌ Scene generation failed, using fallback...",err.message);
+    console.log("❌ Scene generation failed, using fallback...", err.message);
     logWarn(`Scene generation failed: ${err.message}`);
 
-    const fallback = await provider.generate(topic);
+    const fallback = await videoProvider.generate(topic);
     clips.push(fallback);
   }
 
