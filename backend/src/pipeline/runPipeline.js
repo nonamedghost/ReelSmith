@@ -1,5 +1,5 @@
 import "dotenv/config";
-import cleanup from "../utils/cleanup.js";
+import cleanup, { cleanupLibrary } from "../utils/cleanup.js";
 import { ensureDirectories } from "../utils/paths.js";
 import { generateScript } from "../script/generateScriptAI.js";
 import { generateScriptDummy } from "../script/index.js";
@@ -136,6 +136,10 @@ export async function runPipeline({
     duration,
     youtube: youtubeInfo,
   });
+
+  // Archive Library cleanup (keep only latest N reels)
+  cleanupLibrary(Number(process.env.MAX_LIBRARY_REELS) || 10);
+
   // throw upload error if exists (continue pipeline even if upload fails)
   if (uploadError) {
     throw uploadError;

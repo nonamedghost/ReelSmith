@@ -36,7 +36,7 @@ export async function archiveGeneration({
   const reelData = {
     id: archiveId,
 
-    createdAt: getISTTimestamp(),
+    createdAt: new Date().toISOString(),
 
     topic,
     category,
@@ -103,20 +103,7 @@ export function createYoutubeInfo({
     status: "uploaded",
     videoId: uploadResult.id,
     url: uploadResult ? `https://youtu.be/${uploadResult.id}` : null,
-    uploadedAt: getISTTimestamp(),
+    uploadedAt: new Date().toISOString(),
     error: null,
   };
-}
-// Returns the current date and time in IST.
-function getISTTimestamp() {
-  return new Date().toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
 }
