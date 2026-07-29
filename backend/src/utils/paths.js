@@ -16,6 +16,8 @@ export const CLIPS_DIR = path.join(OUTPUT_DIR, "clips");
 export const FINAL_DIR = path.join(OUTPUT_DIR, "final");
 export const LOGS_DIR = path.join(OUTPUT_DIR, "logs");
 
+export const LIBRARY_DIR = path.join(OUTPUT_DIR, "library");
+
 // 🎯 FILE PATH HELPERS
 export const PATHS = {
   audio: path.join(TEMP_DIR, "audio.mp3"),
@@ -38,4 +40,6 @@ export async function ensureDirectories() {
   await fs.ensureDir(CLIPS_DIR);
   await fs.ensureDir(FINAL_DIR);
   await fs.ensureDir(LOGS_DIR);
+
+  await fs.ensureDir(LIBRARY_DIR);
 }

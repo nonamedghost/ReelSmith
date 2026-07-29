@@ -4,7 +4,7 @@ import ffmpeg from "fluent-ffmpeg";
 import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
 import { PATHS, CLIPS_DIR, FINAL_DIR } from "../utils/paths.js";
-import {MODE} from "./vdo-providers/index.js"
+import { MODE } from "./vdo-providers/index.js"
 
 // ⚙️ SETUP FFMPEG PATHS
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
@@ -188,5 +188,8 @@ export async function generateMergedVideo(audioPath, subtitlePath, clipPaths) {
       .save(OUTPUT_FILE);
   });
 
-  return OUTPUT_FILE;
+  return {
+    videoPath: OUTPUT_FILE,
+    duration: totalDuration,
+  };
 }
