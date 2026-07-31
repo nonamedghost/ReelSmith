@@ -1,16 +1,18 @@
 export async function getYoutubeStatus(req, res) {
   res.json({
     success: true,
-    isConnected: false,
-    channelName: "",
-    avatarUrl: "",
+    youtube: {
+      connected: false,
+      channelName: null,
+      avatarUrl: null,
+    },
   });
 }
 
 export async function getYoutubeAuthUrl(req, res) {
   res.json({
     success: true,
-    url: "",
+    url: null,
   });
 }
 
