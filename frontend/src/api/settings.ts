@@ -1,12 +1,9 @@
 import apiClient from './client';
 
-export interface BackendSettings {
-  DEEPGRAM_API_KEY?: string;
-  GEMINI_API_KEY?: string;
-  GROQ_API_KEY?: string;
-  PEXELS_API_KEY?: string;
-  YOUTUBE_CLIENT_ID?: string;
-  YOUTUBE_CLIENT_SECRET?: string;
+export interface AppSettings {
+  provider: "veo" | "pexels" | "hybrid";
+  uploadToYoutube: boolean;
+  maxLibraryReels: number;
 }
 
 export interface YoutubeStatus {
@@ -16,18 +13,27 @@ export interface YoutubeStatus {
 }
 
 export const getSettings = async () => {
-  const response = await apiClient.get<BackendSettings>('/api/settings');
-  return response.data;
+  const response = await apiClient.get<{
+    success: boolean;
+    settings: AppSettings;
+  }>('/api/settings');
+
+  return response.data.settings;
 };
 
-export const saveSettings = async (settings: BackendSettings) => {
+export const saveSettings = async (settings: AppSettings) => {
   const response = await apiClient.post<{ success: boolean }>('/api/settings', settings);
   return response.data;
 };
 
-export const getYoutubeStatus = async () => {
-  const response = await apiClient.get<YoutubeStatus>('/api/youtube/status');
-  return response.data;
+export const getYoutubeStatus = async (): Promise<YoutubeStatus> => {
+  const response = await apiClient.get("/api/youtube/status");
+
+  return {
+    isConnected: response.data.youtube.connected,
+    channelName: response.data.youtube.channelName,
+    avatarUrl: response.data.youtube.avatarUrl,
+  };
 };
 
 export const getYoutubeAuthUrl = async () => {
