@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getHealth } from "../controllers/healthController.js";
 import { generateReel } from "../controllers/reelController.js";
 import { getTopic } from "../controllers/topicController.js";
-import { getYoutubeStatus, getYoutubeAuthUrl, disconnectYoutube } from "../controllers/youtubeController.js";
+import { getYoutubeStatus, getYoutubeAuthUrl, disconnectYoutube, youtubeCallback } from "../controllers/youtubeController.js";
 import { getReels, getLatestReel, deleteReel } from "../controllers/libraryController.js";
 import { getSettings, saveSettings } from "../controllers/settingsController.js";
 
@@ -23,6 +23,7 @@ router.post("/settings", saveSettings);
 
 router.get("/youtube/status", getYoutubeStatus);
 router.get("/youtube/auth-url", getYoutubeAuthUrl);
+router.get("/youtube/callback", youtubeCallback);
 router.post("/youtube/disconnect", disconnectYoutube);
 
 export default router;

@@ -1,3 +1,12 @@
+/**
+ * Manual OAuth testing utility.
+ *
+ * Run from terminal:
+ * node src/youtube/testAuth.js
+ *
+ * Not used by the Express application.
+ */
+
 import readline from "readline";
 
 import {

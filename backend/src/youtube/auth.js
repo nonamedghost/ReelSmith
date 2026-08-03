@@ -2,6 +2,7 @@ import fs from "fs";
 import { google } from "googleapis";
 
 const SCOPES = [
+  "https://www.googleapis.com/auth/youtube",
   "https://www.googleapis.com/auth/youtube.upload",
 ];
 
@@ -13,7 +14,7 @@ const {
   client_secret,
   client_id,
   redirect_uris,
-} = credentials.installed;
+} = credentials.web;
 
 export const oauth2Client = new google.auth.OAuth2(
   client_id,
@@ -25,6 +26,7 @@ export const oauth2Client = new google.auth.OAuth2(
 export function getAuthUrl() {
   return oauth2Client.generateAuthUrl({
     access_type: "offline",
+    prompt: "consent",
     scope: SCOPES,
   });
 }

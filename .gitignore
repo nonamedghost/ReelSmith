@@ -6,6 +6,7 @@ backend/output/
 backend/logs/
 backend/credentials.json
 backend/token.json
+backend/storage/settings.json
 
 
 # Frontend
