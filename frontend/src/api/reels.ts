@@ -19,6 +19,7 @@ export interface Reel {
   topic: string;
   script: string;
   voice: string;
+  duration: number;
   provider: string;
   createdAt: string;
   videoPath: string;
@@ -38,13 +39,21 @@ export const generateReel = async (params: ReelGenerationParams) => {
 };
 
 export const getReels = async () => {
-  const response = await apiClient.get<Reel[]>('/api/reels');
-  return response.data;
+  const response = await apiClient.get<{
+    success: boolean;
+    reels: Reel[];
+  }>('/api/reels');
+
+  return response.data.reels;
 };
 
 export const getLatestReel = async () => {
-  const response = await apiClient.get<Reel>('/api/reels/latest');
-  return response.data;
+  const response = await apiClient.get<{
+    success: boolean;
+    reel: Reel | null;
+  }>('/api/reels/latest');
+
+  return response.data.reel;
 };
 
 export const deleteReel = async (id: string) => {

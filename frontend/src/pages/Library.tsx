@@ -145,8 +145,15 @@ export const Library: React.FC = () => {
               >
                 {/* Visual Thumbnail Placeholder */}
                 <div className="aspect-[9/16] bg-slate-950 relative flex items-center justify-center overflow-hidden border-b border-slate-800/60 h-64">
-                  <Film className="w-12 h-12 text-slate-800 transition-transform group-hover:scale-110 duration-300" />
-
+                  <img
+                    src={`${backendUrl}/api/reels/thumbnail/${reel.id}`}
+                    alt={reel.metadata?.title || reel.topic}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
                   {/* Floating Action Icons */}
                   <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-3 transition-opacity duration-300">
                     <button
@@ -189,10 +196,23 @@ export const Library: React.FC = () => {
 
                   <div className="flex flex-wrap gap-1">
                     <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-750">
-                      {reel.provider}
+                      {reel.provider === "veo"
+                        ? "Veo 3"
+                        : reel.provider === "pexels"
+                          ? "Pexels"
+                          : reel.provider}
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-750 max-w-[120px] truncate">
-                      {reel.voice.replace('aura-2-', '').replace('-en', '')}
+                      {reel.voice
+                        ? `Aura 2 · ${reel.voice
+                          .replace("aura-2-", "")
+                          .replace("-en", "")
+                          .replace(/^./, c => c.toUpperCase())
+                        }`
+                        : "Unknown"}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-750">
+                      {reel.duration.toFixed(1)}s
                     </span>
                   </div>
 
