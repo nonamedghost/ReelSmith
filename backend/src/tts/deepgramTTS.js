@@ -1,11 +1,14 @@
 import fs from "fs";
 import { PATHS } from "../utils/paths.js";
 
+// Deepgram voice model used for TTS
+const VOICE_MODEL = "aura-2-thalia-en";
+
 export async function generateSpeech(text) {
   const filePath = PATHS.audio;
 
   const response = await fetch(
-    "https://api.deepgram.com/v1/speak?model=aura-2-thalia-en&encoding=mp3",
+    `https://api.deepgram.com/v1/speak?model=${VOICE_MODEL}&encoding=mp3`,
     {
       method: "POST",
       headers: {
@@ -26,5 +29,8 @@ export async function generateSpeech(text) {
   fs.writeFileSync(filePath, buffer);
 
   console.log("Deepgram TTS done:", filePath);
-  return filePath;
+  return {
+    filePath,
+    voice: VOICE_MODEL,
+  };
 }

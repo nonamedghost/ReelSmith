@@ -32,6 +32,7 @@ export const PATHS = {
   metadata: path.join(FINAL_DIR, "metadata.json"),
   subtitles: path.join(FINAL_DIR, "subtitles.srt"),
   finalVideo: path.join(FINAL_DIR, "video.mp4"),
+  thumbnail: path.join(FINAL_DIR, "thumbnail.jpg"),
 };
 
 // ✅ Ensure all folders exist

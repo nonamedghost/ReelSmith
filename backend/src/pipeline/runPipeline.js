@@ -14,6 +14,7 @@ import { logInfo, logError, logWarn, logRunStart, logRunEnd } from "../utils/log
 import { uploadYoutubeVideo } from "../youtube/uploadYoutube.js";
 import { getRandomTopic } from "../data/categories.js";
 import { archiveGeneration, createYoutubeInfo } from "../utils/archiveGeneration.js";
+import { createThumbnail } from "../video/utils/createThumbnail.js";
 
 // MAIN PIPELINE
 export async function runPipeline({
@@ -58,8 +59,9 @@ export async function runPipeline({
   logInfo(`✅ Metadata generated: ${metadata.title}`);
 
   // STEP 3: Generate Speech TTS
-  const audio = await generateSpeech(script);
+  const { filePath: audio, voice } = await generateSpeech(script);
   console.log("Audio path:", audio);
+  console.log("Voice:", voice);
   logInfo("✅ Voiceover(TTS) generated");
 
   // STEP 4: Generate SUBTITLES
@@ -83,6 +85,12 @@ export async function runPipeline({
   console.log("Video path:", video);
   console.log("Duration:", duration);
   logInfo("✅ Final rendering completed");
+
+  // STEP 6.5: GENERATE THUMBNAIL
+  const thumbnail = await createThumbnail(video);
+
+  console.log("Thumbnail path:", thumbnail);
+  logInfo("🖼 Thumbnail generated");
 
   // STEP 7: VALIDATE OUTPUT
   const validation = validateOutput();
@@ -134,6 +142,9 @@ export async function runPipeline({
     category,
     provider,
     duration,
+    script,
+    metadata,
+    voice,
     youtube: youtubeInfo,
   });
 

@@ -23,6 +23,11 @@ export async function archiveGeneration({
   category,
   provider,
   duration,
+
+  script,
+  metadata,
+  voice,
+
   youtube = {},
 }) {
   const archiveId = createArchiveId();
@@ -43,6 +48,10 @@ export async function archiveGeneration({
     provider,
     duration,
 
+    script,
+    metadata,
+    voice,
+
     pipelineStatus: "completed",
 
     files: {
@@ -50,6 +59,7 @@ export async function archiveGeneration({
       merged: "merged.mp4",
       metadata: "metadata.json",
       subtitle: "subtitles.srt",
+      thumbnail: "thumbnail.jpg",
     },
 
     youtube: {
