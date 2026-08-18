@@ -5,12 +5,14 @@ import { getTopic } from "../controllers/topicController.js";
 import { getYoutubeStatus, getYoutubeAuthUrl, disconnectYoutube, youtubeCallback } from "../controllers/youtubeController.js";
 import { getReels, getLatestReel, deleteReel, streamReel, downloadReel, streamThumbnail } from "../controllers/libraryController.js";
 import { getSettings, saveSettings } from "../controllers/settingsController.js";
+import { streamProgress } from "../controllers/progressController.js";
 
 const router = Router();
 
 router.get("/health", getHealth);
 
 router.post("/reels/generate", generateReel);
+router.get("/reels/progress/:jobId", streamProgress);
 
 router.get("/topics/random", getTopic);
 
