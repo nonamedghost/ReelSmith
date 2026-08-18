@@ -2,11 +2,26 @@ import { useEffect, useRef, useState } from 'react';
 import { useSettings } from '../context/SettingsContext';
 
 export interface ProgressMessage {
+  type: 'progress' | 'log' | 'completed' | 'error';
   jobId: string;
-  stage: 'script' | 'metadata' | 'tts' | 'subtitles' | 'clips' | 'merge' | 'validate' | 'youtube' | 'complete' | 'error';
-  log: string;
-  percentage: number;
-  status: 'running' | 'success' | 'failed';
+
+  step?: 'queued'
+  | 'script'
+  | 'metadata'
+  | 'tts'
+  | 'subtitles'
+  | 'clips'
+  | 'merge'
+  | 'thumbnail'
+  | 'validate'
+  | 'archive'
+  | 'completed'
+  | 'error';
+
+  progress?: number;
+  status?: 'queued' | 'running' | 'completed' | 'failed';
+  level?: 'info' | 'warn' | 'error';
+  message?: string;
   videoPath?: string;
   error?: string;
 }
@@ -29,7 +44,7 @@ export const useSSE = ({ jobId, onMessage, onComplete, onError }: UseSSEProps) =
     }
 
     setIsConnected(true);
-    const url = `${backendUrl}/api/reels/progress?jobId=${jobId}`;
+    const url = `${backendUrl}/api/reels/progress/${jobId}`;
     const es = new EventSource(url);
     eventSourceRef.current = es;
 
@@ -42,12 +57,12 @@ export const useSSE = ({ jobId, onMessage, onComplete, onError }: UseSSEProps) =
         const data = JSON.parse(event.data) as ProgressMessage;
         onMessage(data);
 
-        if (data.stage === 'complete' && data.status === 'success') {
+        if (data.type === 'completed') {
           onComplete(data.videoPath || '');
           es.close();
           setIsConnected(false);
-        } else if (data.stage === 'error' || data.status === 'failed') {
-          onError(data.error || data.log || 'An unknown error occurred during generation.');
+        } else if (data.type === 'error') {
+          onError(data.message ?? data.error ?? 'Pipeline failed, Unknown error occurred during generation.');
           es.close();
           setIsConnected(false);
         }

@@ -60,38 +60,34 @@ export const CreateReel: React.FC = () => {
   useSSE({
     jobId,
     onMessage: (message: ProgressMessage) => {
-      if (message.log) {
-        setLogs((prev) => [...prev, message.log]);
+      // Terminal logs
+      if (message.type === 'log' && message.message) {
+        setLogs((prev) => [...prev, message.message]);
       }
+      // Only progress events should update the StepTracker
+      if (message.type === 'progress') {
+        setCurrentStage(message.step || '');
+        // Update step statuses based on current pipeline reports
+        setStepStatuses((prev) => {
+          const next = { ...prev };
 
-      setCurrentStage(message.stage);
+          // Find index of current stage in sequence
+          const stageIndex = PIPELINE_STEPS.findIndex((s) => s.key === message.step);
 
-      // Update step statuses based on current pipeline reports
-      setStepStatuses((prev) => {
-        const next = { ...prev };
-
-        // Find index of current stage in sequence
-        const stageIndex = PIPELINE_STEPS.findIndex((s) => s.key === message.stage);
-
-        // Mark all steps before current stage as successful if they aren't already
-        PIPELINE_STEPS.forEach((step, idx) => {
-          if (idx < stageIndex) {
-            next[step.key] = 'success';
-          } else if (idx === stageIndex) {
-            if (message.status === 'success' && message.stage === 'complete') {
+          // Mark all steps before current stage as successful if they aren't already
+          PIPELINE_STEPS.forEach((step, idx) => {
+            if (idx < stageIndex) {
               next[step.key] = 'success';
-            } else if (message.status === 'failed' || message.stage === 'error') {
-              next[step.key] = 'failed';
-            } else {
+            } else if (idx === stageIndex) {
               next[step.key] = 'running';
+            } else {
+              next[step.key] = 'pending';
             }
-          } else {
-            next[step.key] = 'pending';
-          }
-        });
+          });
 
-        return next;
-      });
+          return next;
+        });
+      }
     },
     onComplete: async () => {
       setIsGenerating(false);
@@ -109,14 +105,13 @@ export const CreateReel: React.FC = () => {
       // Retrieve the generated reel details
       try {
         const latest = await getLatestReel();
-        if (latest.metadata) {
-          setMetadata(latest.metadata);
-        }
 
-        // Serve final video path
-        // Resolve static asset endpoint (usually /output/final/video.mp4 on backend)
-        const finalUrl = `${backendUrl}/output/final/video.mp4?t=${Date.now()}`;
-        setVideoPath(finalUrl);
+        if (latest) {
+          if (latest.metadata) {
+            setMetadata(latest.metadata);
+          }
+          setVideoPath(`${backendUrl}/api/reels/video/${latest.id}?t=${Date.now()}`);
+        }
       } catch (err) {
         console.error('Failed to retrieve latest video metadata', err);
         setErrorMsg('Video generated successfully, but metadata retrieval failed.');

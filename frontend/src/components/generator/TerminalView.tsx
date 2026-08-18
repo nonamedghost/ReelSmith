@@ -39,7 +39,7 @@ export const TerminalView: React.FC<TerminalViewProps> = ({ logs }) => {
               logColorClass = 'text-emerald-400';
             } else if (log.includes('❌') || log.toLowerCase().includes('failed') || log.toLowerCase().includes('error')) {
               logColorClass = 'text-rose-400 font-semibold';
-            } else if (log.includes('🔥') || log.toLowerCase().includes('warn')) {
+            } else if (log.includes('⚠') || log.includes('WARNING') || log.toLowerCase().includes('warn')) {
               logColorClass = 'text-amber-400';
             } else if (log.toLowerCase().includes('starting') || log.includes('🚀')) {
               logColorClass = 'text-indigo-400';

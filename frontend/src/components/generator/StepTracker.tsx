@@ -21,8 +21,9 @@ export const PIPELINE_STEPS: PipelineStep[] = [
   { key: 'subtitles', label: 'Subtitles', description: 'Transcribing & creating captions' },
   { key: 'clips', label: 'Video Clips', description: 'Fetching stock clips or AI visuals' },
   { key: 'merge', label: 'Merge & Render', description: 'FFmpeg rendering final MP4' },
+  { key: 'thumbnail', label: 'Thumbnail', description: 'Generating thumbnail image' },
   { key: 'validate', label: 'Validation', description: 'Verifying outputs compliance' },
-  { key: 'youtube', label: 'YouTube Upload', description: 'Publishing reel to channel' },
+  { key: 'archive', label: 'Archive', description: 'Saving generation and cleaning up' },
 ];
 
 export const StepTracker: React.FC<StepTrackerProps> = ({/* currentStage, */ statuses, }) => {

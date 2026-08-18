@@ -34,7 +34,11 @@ export const getRandomTopic = async () => {
 };
 
 export const generateReel = async (params: ReelGenerationParams) => {
-  const response = await apiClient.post<{ jobId: string }>('/api/reels/generate', params);
+  const response = await apiClient.post<{
+    success: boolean;
+    jobId: string;
+    message: string;
+  }>("/api/reels/generate", params);
   return response.data;
 };
 
