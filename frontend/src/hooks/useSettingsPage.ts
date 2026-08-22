@@ -27,7 +27,7 @@ export function useSettingsPage() {
 
   useEffect(() => {
     fetchBackendSettings();
-  }, [isApiOnline]);
+  }, [isApiOnline, backendUrl]);
 
   async function fetchBackendSettings() {
     if (!isApiOnline) {

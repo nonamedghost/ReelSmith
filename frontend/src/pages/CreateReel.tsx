@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getSettings } from '../api/settings';
 import {
   Play,
   Sparkles,
@@ -55,6 +56,23 @@ export const CreateReel: React.FC = () => {
   // Results states
   const [videoPath, setVideoPath] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<ReelMetadata | null>(null);
+
+  useEffect(() => {
+    if (!isApiOnline) return;
+
+    const loadSettings = async () => {
+      try {
+        const settings = await getSettings();
+
+        setProvider(settings.provider);
+        setUploadToYoutube(settings.uploadToYoutube);
+      } catch (err) {
+        console.error('Failed to load application settings:', err);
+      }
+    };
+
+    loadSettings();
+  }, [isApiOnline, backendUrl]);
 
   // SSE streaming hooks
   useSSE({
