@@ -3,6 +3,7 @@ import {
   Play,
   Download,
   Trash2,
+  Upload,
   //Youtube,
   Video,
   ExternalLink,
@@ -12,7 +13,7 @@ import {
   Film,
   X
 } from 'lucide-react';
-import { getReels, deleteReel,/* Reel */ } from '../api/reels';
+import { getReels, deleteReel, uploadReelToYouTube, /* Reel */ } from '../api/reels';
 import type { Reel } from "../api/reels";
 import { useSettings } from '../context/SettingsContext';
 
@@ -21,6 +22,7 @@ export const Library: React.FC = () => {
   const [reels, setReels] = useState<Reel[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingReelId, setUploadingReelId] = useState<string | null>(null);
 
   // Modal tracking
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
@@ -58,6 +60,30 @@ export const Library: React.FC = () => {
     } catch (err: any) {
       console.error('Failed to delete reel', err);
       alert('Delete failed: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleUpload = async (id: string) => {
+    if (!window.confirm('Upload this Reel to YouTube again?')) {
+      return;
+    }
+
+    try {
+      setUploadingReelId(id);
+      const result = await uploadReelToYouTube(id);
+
+      setReels((prev) =>
+        prev.map((reel) =>
+          reel.id === id
+            ? { ...reel, youtubeUploadStatus: 'success', youtubeVideoId: result.videoId, }
+            : reel
+        )
+      );
+    } catch (err: any) {
+      console.error('Failed to upload reel to YouTube', err);
+      alert('YouTube upload failed: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setUploadingReelId(null);
     }
   };
 
@@ -217,20 +243,48 @@ export const Library: React.FC = () => {
                   </div>
 
                   {/* Danger zone delete button */}
-                  <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                    {reel.youtubeVideoId ? (
-                      <a
-                        href={`https://youtube.com/watch?v=${reel.youtubeVideoId}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[10px] font-semibold text-violet-400 hover:text-violet-300 flex items-center gap-1"
+                  {/* Card actions */}
+                  <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {reel.youtubeVideoId ? (
+                        <a
+                          href={`https://youtube.com/watch?v=${reel.youtubeVideoId}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[10px] font-semibold text-violet-400 hover:text-violet-300 flex items-center gap-1"
+                        >
+                          YouTube Link
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <span className="text-[10px] text-slate-500">
+                          Local reel
+                        </span>
+                      )}
+
+                      <button
+                        onClick={() => handleUpload(reel.id)}
+                        disabled={uploadingReelId === reel.id}
+                        className="text-[10px] font-semibold text-rose-400 hover:text-rose-300 disabled:opacity-50 flex items-center gap-1"
                       >
-                        YouTube Link
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ) : (
-                      <span className="text-[10px] text-slate-500">Local reel</span>
-                    )}
+                        {uploadingReelId === reel.id ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : reel.youtubeVideoId ? (
+                          <>
+                            Re-upload
+                            <Upload className="w-3 h-3" />
+                          </>
+                        ) : (
+                          <>
+                            Upload
+                            <Upload className="w-3 h-3" />
+                          </>
+                        )}
+                      </button>
+                    </div>
 
                     <button
                       onClick={() => handleDelete(reel.id)}

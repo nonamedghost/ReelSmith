@@ -64,3 +64,14 @@ export const deleteReel = async (id: string) => {
   const response = await apiClient.delete<{ success: boolean }>(`/api/reels/${id}`);
   return response.data;
 };
+
+export const uploadReelToYouTube = async (id: string) => {
+  const response = await apiClient.post<{
+    success: boolean;
+    reelId: string;
+    videoId: string;
+    url: string;
+  }>(`/api/reels/${id}/upload`);
+
+  return response.data;
+};
