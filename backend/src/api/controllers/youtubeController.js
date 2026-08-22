@@ -1,6 +1,10 @@
 import fs from "fs";
+import fsExtra from "fs-extra";
+import path from "path";
 import { google } from "googleapis";
 import { getAuthUrl, saveToken, oauth2Client } from "../../youtube/auth.js";
+import { uploadYoutubeVideo } from "../../youtube/uploadYoutube.js";
+import { LIBRARY_DIR } from "../../utils/paths.js";
 
 export async function getYoutubeStatus(req, res) {
   try {
@@ -116,6 +120,100 @@ export async function disconnectYoutube(req, res) {
     res.status(500).json({
       success: false,
       message: "Failed to disconnect YouTube.",
+    });
+  }
+}
+
+export async function uploadReelToYoutube(req, res) {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: "Reel ID is required.",
+      });
+    }
+
+    // Check YouTube authentication
+    if (!fs.existsSync("token.json")) {
+      return res.status(401).json({
+        success: false,
+        error: "YouTube is not connected.",
+      });
+    }
+
+    const reelDir = path.join(LIBRARY_DIR, id);
+    const reelJsonPath = path.join(reelDir, "reel.json");
+    const metadataPath = path.join(reelDir, "metadata.json");
+
+    // Check reel exists
+    if (!(await fsExtra.pathExists(reelJsonPath))) {
+      return res.status(404).json({
+        success: false,
+        error: "Reel not found.",
+      });
+    }
+
+    // Load reel information
+    const reel = await fsExtra.readJson(reelJsonPath);
+
+    // Resolve video path using the same structure as Library
+    const videoPath = path.join(
+      reelDir,
+      reel.files.video
+    );
+
+    if (!(await fsExtra.pathExists(videoPath))) {
+      return res.status(404).json({
+        success: false,
+        error: "Video file not found.",
+      });
+    }
+
+    // Load existing metadata
+    if (!(await fsExtra.pathExists(metadataPath))) {
+      return res.status(404).json({
+        success: false,
+        error: "Metadata file not found.",
+      });
+    }
+
+    const metadata = await fsExtra.readJson(metadataPath);
+
+    console.log(`Starting manual YouTube upload for reel: ${id}`);
+
+    // Reuse existing YouTube uploader
+    const result = await uploadYoutubeVideo({
+      videoPath,
+      metadata,
+    });
+
+    // Save upload state back into reel.json
+    reel.youtube = {
+      status: "uploaded",
+      videoId: result.id,
+      url: `https://youtube.com/watch?v=${result.id}`,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    await fsExtra.writeJson(reelJsonPath, reel, {
+      spaces: 2,
+    });
+
+    res.json({
+      success: true,
+      reelId: id,
+      videoId: result.id,
+      url: `https://youtube.com/watch?v=${result.id}`,
+    });
+
+  } catch (err) {
+    console.error("Manual YouTube upload failed:", err);
+
+    res.status(500).json({
+      success: false,
+      error: err.message,
     });
   }
 }
