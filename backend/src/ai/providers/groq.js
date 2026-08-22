@@ -7,7 +7,7 @@ const groq = new Groq({
 export async function generateGroqCompletion(prompt) {
   try {
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
 
       messages: [
         {
@@ -23,7 +23,10 @@ export async function generateGroqCompletion(prompt) {
 
       temperature: 0.7,
 
-      max_tokens: 500,
+      max_tokens: 1500,
+      response_format: {
+        type: "json_object",
+      },
     });
 
     const text =
