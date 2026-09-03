@@ -4,8 +4,8 @@ import { GoogleGenAI } from "@google/genai";
 // Vertex AI Client
 const ai = new GoogleGenAI({
   vertexai: true,
-  project: "project-85ff445b-674b-4647-b23",
-  location: "us-central1",
+  project: process.env.GCP_PROJECT_ID,
+  location: process.env.GCP_LOCATION,
 });
 
 export async function generateWithVertex(prompt) {
