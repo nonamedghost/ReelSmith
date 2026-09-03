@@ -1,4 +1,4 @@
-import { generateScript } from "../src/script/generateScriptAi.js";
+import { generateScript } from "../src/script/generateScriptAI.js";
 import { generateAiScenePrompts } from "../src/script/generateAiScenePrompts.js";
 
 const animeTopics = [
@@ -39,47 +39,3 @@ async function runTests() {
 
 runTests();
 
-/*
-import { generateScript } from "./src/script/generateScriptAi.js";
-import { generateAiScenePrompts } from "./src/script/generateAiScenePrompts.js";
-
-async function test() {
-  try {
-    // OPTION 1: Generate script automatically
-    const script = await generateScript("attack on titan secrets");
-
-    console.log("\n=== SCRIPT ===\n");
-    console.log(script);
-
-    const prompts = await generateAiScenePrompts(script);
-
-    console.log("\n=== PROMPTS ===\n");
-    console.dir(prompts, { depth: null });
-
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-test();
-*/
-
-/*
-import { generateAiScenePrompts } from "./src/script/generateAiScenePrompts.js";
-
-const script = `
-The Titans were never humanity's greatest enemy.
-For over a century, people believed the walls protected them from monsters.
-But the truth was hidden inside the walls themselves.
-The Titans were once human, transformed by a mysterious power.
-`;
-
-async function test() {
-  const prompts = await generateAiScenePrompts(script);
-
-  console.log("\n=== PROMPTS ===\n");
-  console.dir(prompts, { depth: null });
-}
-
-test();
-*/
