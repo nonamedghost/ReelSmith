@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Film, 
-  Settings as SettingsIcon, 
-  PlusCircle, 
-  CheckCircle, 
+import {
+  Film,
+  Settings as SettingsIcon,
+  PlusCircle,
+  CheckCircle,
   Video,
   Loader2,
   AlertCircle,
@@ -64,14 +64,14 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fade-in text-left">
-      
+
       {/* Welcome Banner */}
       <div className="relative rounded-2xl overflow-hidden p-6 md:p-8 bg-gradient-to-r from-violet-900/40 via-indigo-950/30 to-slate-900 border border-violet-800/20 shadow-xl">
         <div className="relative z-10 max-w-xl space-y-3">
-          <span className="px-3 py-1 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 text-xs font-bold uppercase tracking-wider">AI Video Generator</span>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Create engaging vertical video reels with AI</h1>
+          <span className="px-3 py-1 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 text-xs font-bold uppercase tracking-wider">AI REEL STUDIO</span>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Turn ideas into engaging Reels with AI</h1>
           <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-            Generate narration scripts, render deepgram voice voiceovers, transcribe captions, fetch premium stock clips, and upload directly to YouTube automatically.
+            Generate narration scripts, create AI voiceovers, generate captions, source visuals, render vertical videos, and publish directly to YouTube.
           </p>
           <div className="pt-2">
             <Link
@@ -88,7 +88,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Metrics Card Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
+
         {/* Metric 1: Total Reels */}
         <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl p-5 border border-slate-800 flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center flex-shrink-0">
@@ -137,7 +137,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Main Grid Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* Left Column: Recent Generation List */}
         <div className="lg:col-span-8 space-y-6">
           <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
@@ -207,7 +207,7 @@ export const Dashboard: React.FC = () => {
                 Quick Actions
               </h3>
             </div>
-            
+
             <div className="space-y-3">
               <Link
                 to="/create"
