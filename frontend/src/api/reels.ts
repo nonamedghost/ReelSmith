@@ -6,6 +6,7 @@ export interface ReelGenerationParams {
   voice: string;
   provider: string;
   uploadToYoutube: boolean;
+  category?: string;
 }
 
 export interface ReelMetadata {

@@ -2,7 +2,7 @@ import { runPipeline } from "../../pipeline/runPipeline.js";
 import { createJob, emitProgress, emitCompleted, emitError, deleteJob } from "../jobManager.js";
 
 export async function generateReel(req, res) {
-  const { topic, provider, uploadToYoutube } = req.body;
+  const { category, topic, scriptText, voice, provider, uploadToYoutube } = req.body;
 
   // Create a new background job
   const jobId = createJob();
@@ -25,7 +25,10 @@ export async function generateReel(req, res) {
       );
 
       await runPipeline({
+        category,
         topic,
+        scriptText,
+        voice,
         provider,
         uploadToYoutube,
         jobId,

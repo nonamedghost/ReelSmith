@@ -19,7 +19,10 @@ import { emitProgress, emitLog } from "../api/jobManager.js";
 
 // MAIN PIPELINE
 export async function runPipeline({
+  category,
   topic,
+  scriptText,
+  voice = "aura-2-thalia-en",
   provider = "veo",
   uploadToYoutube = true,
   jobId,
@@ -42,26 +45,35 @@ export async function runPipeline({
   pipelineLog("Reels Generator started.");
 
   // STEP 1: SCRIPT
-  let category;
   if (!topic) {
-    ({ category, topic } = getRandomTopic());
-  }
-  const USE_AI = true;
-  let script;
+    const randomTopic = getRandomTopic();
+    topic = randomTopic.topic;
 
-  try {
-    script = USE_AI
-      ? await generateScript(topic)
-      : generateScriptDummy();
-  } catch (err) {
-    pipelineLog(`❌ AI script generation failed: ${err.message}`, "error");
-    console.log("❌ Gemini ERROR:", err);
-    console.log("❌ AI Script failed, using fallback...");
-    script = generateScriptDummy();
+    if (!category) {
+      category = randomTopic.category;
+    }
+  }
+  let script;
+  if (scriptText && scriptText.trim()) {
+    // Use the script provided by the frontend
+    script = scriptText.trim();
+
+    pipelineLog("📝 Using custom script provided by user");
+  } else {
+    // Generate script with AI
+    try {
+      script = await generateScript(topic);
+    } catch (err) {
+      pipelineLog(`❌ AI script generation failed: ${err.message}`, "error");
+      console.log("❌ Gemini ERROR:", err);
+      console.log("❌ AI Script failed, using fallback...");
+      script = generateScriptDummy();
+    }
+    pipelineLog("🤖 AI script generated successfully");
   }
   pipelineLog(`📂 Category selected: ${category}`);
   pipelineLog(`✅ Topic selected: ${topic}`);
-  //console.log("✅ Script:", script);
+  console.log("✅ Script:", script);
   pipelineLog("✅ Script generated successfully");
 
   // update job at 10%
@@ -78,7 +90,7 @@ export async function runPipeline({
   emitProgress(jobId, "metadata", 20, "Metadata generated");
 
   // STEP 3: Generate Speech TTS
-  const { filePath: audio, voice } = await generateSpeech(script);
+  const { filePath: audio } = await generateSpeech(script, voice);
   console.log("Audio path:", audio);
   console.log("Voice:", voice);
   pipelineLog("✅ Voiceover(TTS) generated");

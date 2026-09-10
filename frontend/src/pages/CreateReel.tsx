@@ -1,16 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getSettings } from '../api/settings';
-import {
-  Play,
-  Sparkles,
-  RotateCw,
-  FileText,
-  Volume2,
-  Video as VideoIcon,
-  Download,
-  AlertCircle,
-  FileCheck
-} from 'lucide-react';
+import { Play, Sparkles, RotateCw, FileText, Volume2, Video as VideoIcon, Download, AlertCircle, FileCheck } from 'lucide-react';
 import { getRandomTopic, generateReel, getLatestReel, type ReelMetadata } from '../api/reels';
 import { useSettings } from '../context/SettingsContext';
 import { TerminalView } from '../components/generator/TerminalView';
@@ -24,10 +14,24 @@ const YoutubeIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 const VOICE_OPTIONS = [
-  { value: 'aura-2-thalia-en', label: 'Thalia (Female - Bright)' },
-  { value: 'aura-2-orpheus-en', label: 'Orpheus (Male - Rich)' },
-  { value: 'aura-2-helios-en', label: 'Helios (Male - Warm)' },
-  { value: 'aura-2-arcas-en', label: 'Arcas (Male - Deep)' },
+  // Aura-2
+  { value: 'aura-2-thalia-en', label: 'Thalia (Female - Energetic & Enthusiastic)' },
+  { value: 'aura-2-orpheus-en', label: 'Orpheus (Male - Professional & Confident)' },
+  { value: 'aura-2-arcas-en', label: 'Arcas (Male - Natural & Smooth)' },
+  { value: 'aura-2-athena-en', label: 'Athena (Female - Calm & Professional)' },
+  { value: 'aura-2-aries-en', label: 'Aries (Male - Warm & Energetic)' },
+  { value: 'aura-2-zeus-en', label: 'Zeus (Male - Deep & Trustworthy)' },
+  { value: 'aura-2-ophelia-en', label: 'Ophelia (Female - Expressive & Cheerful)' },
+
+  // Aura-1
+  { value: 'aura-helios-en', label: 'Helios (Male - Professional & Clear)' },
+
+  // Flux
+  { value: 'flux-sienna-en', label: 'Sienna (Female - Warm & Caring)' },
+  { value: 'flux-brittany-en', label: 'Brittany (Female - Confident & Soft)' },
+  { value: 'flux-hannah-en', label: 'Hannah (Female - Clear & Pleasant)' },
+  { value: 'flux-priya-en', label: 'Priya (Female - Confident & Empathetic)' },
+  { value: 'flux-naveen-en', label: 'Naveen (Male - Calm & Knowledgeable)' },
 ];
 
 const PROVIDER_OPTIONS = [
@@ -42,6 +46,7 @@ export const CreateReel: React.FC = () => {
   const [topic, setTopic] = useState<string>('');
   const [scriptText, setScriptText] = useState<string>('');
   const [voice, setVoice] = useState<string>('aura-2-thalia-en');
+  const [category, setCategory] = useState<string | undefined>(undefined);
   const [provider, setProvider] = useState<string>('pexels');
   const [uploadToYoutube, setUploadToYoutube] = useState<boolean>(false);
 
@@ -154,6 +159,7 @@ export const CreateReel: React.FC = () => {
     try {
       const data = await getRandomTopic();
       setTopic(data.topic);
+      setCategory(data.category);
     } catch (err) {
       console.error('Failed to get random topic', err);
     }
@@ -185,6 +191,7 @@ export const CreateReel: React.FC = () => {
         voice,
         provider,
         uploadToYoutube,
+        category,
       });
       setJobId(data.jobId);
     } catch (err: any) {
@@ -232,7 +239,10 @@ export const CreateReel: React.FC = () => {
                     type="text"
                     required
                     value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
+                    onChange={(e) => {
+                      setTopic(e.target.value);
+                      setCategory('custom');
+                    }}
                     disabled={isGenerating || !isApiOnline}
                     placeholder="e.g. Crazy space facts"
                     className="flex-1 px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500/50 transition-colors disabled:opacity-50"
