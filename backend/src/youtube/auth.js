@@ -6,20 +6,18 @@ const SCOPES = [
   "https://www.googleapis.com/auth/youtube.upload",
 ];
 
-const credentials = JSON.parse(
-  fs.readFileSync("credentials.json")
-);
-
+// Load Google OAuth credentials from environment variables
 const {
-  client_secret,
-  client_id,
-  redirect_uris,
-} = credentials.web;
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI,
+} = process.env;
 
+// Initialize the Google OAuth2 client
 export const oauth2Client = new google.auth.OAuth2(
-  client_id,
-  client_secret,
-  redirect_uris[0]
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI
 );
 
 // Generate login URL
