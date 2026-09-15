@@ -1,13 +1,16 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
 import { Sun, Moon, Wifi, WifiOff } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export const Topbar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { isApiOnline } = useSettings();
+  const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Deduce page title from path
   const getPageTitle = () => {
@@ -50,6 +53,25 @@ export const Topbar: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Logout */}
+        {user && (
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline text-sm text-slate-300">
+              {user.name}
+            </span>
+
+            <button
+              onClick={() => {
+                logout();
+                navigate('/login', { replace: true });
+              }}
+              className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700/50 hover:bg-slate-700 transition-all duration-200 text-sm font-medium"
+            >
+              Logout
+            </button>
+          </div>
+        )}
 
         {/* Theme Toggle Button */}
         <button
