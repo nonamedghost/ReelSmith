@@ -17,19 +17,19 @@ router.post("/auth/register", register);
 router.post("/auth/login", login);
 router.get("/auth/me", protect, getMe);
 
-router.post("/reels/generate", generateReel);
-router.get("/reels/progress/:jobId", streamProgress);
+router.post("/reels/generate", protect, generateReel);
+router.get("/reels/progress/:jobId", protect, streamProgress);
 
 router.get("/topics/random", getTopic);
 
-router.get("/reels", getReels);
-router.get("/reels/latest", getLatestReel);
-router.get("/reels/video/:id", streamReel);
-router.get("/reels/thumbnail/:id", streamThumbnail);
-router.get("/reels/download/:id", downloadReel);
-router.delete("/reels/:id", deleteReel);
+router.get("/reels", protect, getReels);
+router.get("/reels/latest", protect, getLatestReel);
+router.get("/reels/video/:id", protect, streamReel);
+router.get("/reels/thumbnail/:id", protect, streamThumbnail);
+router.get("/reels/download/:id", protect, downloadReel);
+router.delete("/reels/:id", protect, deleteReel);
 
-router.post("/reels/:id/upload", uploadReelToYoutube);
+router.post("/reels/:id/upload", protect, uploadReelToYoutube);
 
 router.get("/settings", getSettings);
 router.post("/settings", saveSettings);

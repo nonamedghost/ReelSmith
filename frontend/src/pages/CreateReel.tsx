@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getSettings } from '../api/settings';
+import apiClient from '../api/client';
 import { Play, Sparkles, RotateCw, FileText, Volume2, Video as VideoIcon, Download, AlertCircle, FileCheck } from 'lucide-react';
 import { getRandomTopic, generateReel, getLatestReel, type ReelMetadata } from '../api/reels';
 import { useSettings } from '../context/SettingsContext';
@@ -61,6 +62,15 @@ export const CreateReel: React.FC = () => {
   // Results states
   const [videoPath, setVideoPath] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<ReelMetadata | null>(null);
+
+  // Clean up blob URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (videoPath) {
+        URL.revokeObjectURL(videoPath);
+      }
+    };
+  }, [videoPath]);
 
   useEffect(() => {
     if (!isApiOnline) return;
@@ -133,7 +143,12 @@ export const CreateReel: React.FC = () => {
           if (latest.metadata) {
             setMetadata(latest.metadata);
           }
-          setVideoPath(`${backendUrl}/api/reels/video/${latest.id}?t=${Date.now()}`);
+          const response = await apiClient.get(
+            `/reels/video/${latest.id}?t=${Date.now()}`,
+            { responseType: 'blob', }
+          );
+          const videoUrl = URL.createObjectURL(response.data);
+          setVideoPath(videoUrl);
         }
       } catch (err) {
         console.error('Failed to retrieve latest video metadata', err);
@@ -200,6 +215,18 @@ export const CreateReel: React.FC = () => {
       setErrorMsg(errMsg);
       setLogs((prev) => [...prev, `❌ Connection Failed: ${errMsg}`]);
     }
+  };
+
+  const handleVideoDownload = () => {
+    if (!videoPath) return;
+
+    const link = document.createElement('a');
+    link.href = videoPath;
+    link.download = 'reel.mp4';
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   return (
@@ -376,14 +403,13 @@ export const CreateReel: React.FC = () => {
                   <FileCheck className="w-5 h-5 text-emerald-400" />
                   <h3 className="text-lg font-bold text-white">Generated Video</h3>
                 </div>
-                <a
-                  href={videoPath}
-                  download="reel.mp4"
+                <button
+                  onClick={handleVideoDownload}
                   className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   Download Reel
-                </a>
+                </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">

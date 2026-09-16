@@ -26,6 +26,7 @@ export async function runPipeline({
   provider = "veo",
   uploadToYoutube = true,
   jobId,
+  userId,
 } = {}) {
 
   const pipelineLog = (message, level = "info") => {
@@ -196,6 +197,7 @@ export async function runPipeline({
     script,
     metadata,
     voice,
+    userId,
     youtube: youtubeInfo,
   });
 

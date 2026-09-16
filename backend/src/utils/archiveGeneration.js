@@ -27,6 +27,7 @@ export async function archiveGeneration({
   script,
   metadata,
   voice,
+  userId,
 
   youtube = {},
 }) {
@@ -40,6 +41,7 @@ export async function archiveGeneration({
   // Backend metadata
   const reelData = {
     id: archiveId,
+    userId,
 
     createdAt: new Date().toISOString(),
 

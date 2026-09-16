@@ -3,9 +3,10 @@ import { createJob, emitProgress, emitCompleted, emitError, deleteJob } from "..
 
 export async function generateReel(req, res) {
   const { category, topic, scriptText, voice, provider, uploadToYoutube } = req.body;
+  const userId = req.user.userId;
 
   // Create a new background job
-  const jobId = createJob();
+  const jobId = createJob(userId);
 
   // Respond immediately
   res.status(202).json({
@@ -32,6 +33,7 @@ export async function generateReel(req, res) {
         provider,
         uploadToYoutube,
         jobId,
+        userId,
       });
 
       emitCompleted(jobId);

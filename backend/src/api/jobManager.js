@@ -4,11 +4,12 @@ import crypto from "crypto";
 const jobs = new Map();
 
 // Creates a new job and returns a unique jobId
-export function createJob() {
+export function createJob(userId) {
   const jobId = crypto.randomUUID();
 
   jobs.set(jobId, {
     id: jobId,
+    userId,
     listeners: new Set(),
     status: "queued",
     progress: 0,

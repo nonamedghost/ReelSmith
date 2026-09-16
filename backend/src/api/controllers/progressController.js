@@ -13,6 +13,14 @@ export function streamProgress(req, res) {
     });
   }
 
+  // if job is not owned by user
+  if (job.userId !== req.user.userId) {
+    return res.status(403).json({
+      success: false,
+      error: "Access denied",
+    });
+  }
+
   // Required SSE headers
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");

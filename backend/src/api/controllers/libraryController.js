@@ -4,7 +4,7 @@ import path from "path";
 import { LIBRARY_DIR } from "../../utils/paths.js";
 
 // to load all the reels in the library
-async function loadLibrary() {
+async function loadLibrary(userId) {
   const folders = await fs.readdir(LIBRARY_DIR);
   const reels = [];
 
@@ -15,6 +15,10 @@ async function loadLibrary() {
       continue;
     }
     const reel = await fs.readJson(reelPath);
+
+    if (reel.userId !== userId) {
+      continue;
+    }
 
     reels.push({
       ...reel,
@@ -38,15 +42,15 @@ async function loadLibrary() {
 }
 
 // to find a specific reel in the library
-async function findReel(id) {
-  const reels = await loadLibrary();
+async function findReel(id, userId) {
+  const reels = await loadLibrary(userId);
   return reels.find((r) => r.id === id);
 }
 
 // to get all reels in the library
 export async function getReels(req, res) {
   try {
-    const reels = await loadLibrary();
+    const reels = await loadLibrary(req.user.userId);
 
     res.json({
       success: true,
@@ -63,7 +67,7 @@ export async function getReels(req, res) {
 // to get the latest reel from the library
 export async function getLatestReel(req, res) {
   try {
-    const reels = await loadLibrary();
+    const reels = await loadLibrary(req.user.userId);
 
     res.json({
       success: true,
@@ -82,7 +86,7 @@ export async function streamReel(req, res) {
   try {
     const { id } = req.params;
 
-    const reel = await findReel(id);
+    const reel = await findReel(id, req.user.userId);
 
     if (!reel) {
       return res.status(404).json({
@@ -119,9 +123,18 @@ export async function streamThumbnail(req, res) {
   try {
     const { id } = req.params;
 
+    const reel = await findReel(id, req.user.userId);
+
+    if (!reel) {
+      return res.status(404).json({
+        success: false,
+        error: "Reel not found",
+      });
+    }
+
     const thumbnailPath = path.join(
       LIBRARY_DIR,
-      id,
+      reel.id,
       "thumbnail.jpg"
     );
 
@@ -148,7 +161,7 @@ export async function downloadReel(req, res) {
   try {
     const { id } = req.params;
 
-    const reel = await findReel(id);
+    const reel = await findReel(id, req.user.userId);
 
     if (!reel) {
       return res.status(404).json({
@@ -184,7 +197,7 @@ export async function downloadReel(req, res) {
 export async function deleteReel(req, res) {
   try {
     const { id } = req.params;
-    const reel = await findReel(id);
+    const reel = await findReel(id, req.user.userId);
 
     if (!reel) {
       return res.status(404).json({

@@ -33,9 +33,15 @@ interface UseSSEProps {
   onError: (errorMsg: string) => void;
 }
 
-export const useSSE = ({ jobId, onMessage, onComplete, onError }: UseSSEProps) => {
+export const useSSE = ({
+  jobId,
+  onMessage,
+  onComplete,
+  onError,
+}: UseSSEProps) => {
   const { backendUrl } = useSettings();
-  const eventSourceRef = useRef<EventSource | null>(null);
+
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
@@ -43,43 +49,135 @@ export const useSSE = ({ jobId, onMessage, onComplete, onError }: UseSSEProps) =
       return;
     }
 
-    setIsConnected(true);
-    const url = `${backendUrl}/api/reels/progress/${jobId}`;
-    const es = new EventSource(url);
-    eventSourceRef.current = es;
+    const token = localStorage.getItem('auth_token');
 
-    es.onopen = () => {
-      console.log('SSE: Connection opened for Job', jobId);
-    };
+    if (!token) {
+      onError('Authentication required. Please log in again.');
+      return;
+    }
 
-    es.onmessage = (event) => {
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    const connectSSE = async () => {
       try {
-        const data = JSON.parse(event.data) as ProgressMessage;
-        onMessage(data);
+        const url = `${backendUrl}/api/reels/progress/${jobId}`;
 
-        if (data.type === 'completed') {
-          onComplete(data.videoPath || '');
-          es.close();
-          setIsConnected(false);
-        } else if (data.type === 'error') {
-          onError(data.message ?? data.error ?? 'Pipeline failed, Unknown error occurred during generation.');
-          es.close();
-          setIsConnected(false);
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'text/event-stream',
+          },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Authentication failed. Please log in again.');
+          }
+
+          if (response.status === 403) {
+            throw new Error('Access denied for this generation job.');
+          }
+
+          throw new Error(
+            `Progress server returned HTTP ${response.status}.`
+          );
         }
+
+        if (!response.body) {
+          throw new Error('Progress server did not return a readable stream.');
+        }
+
+        setIsConnected(true);
+
+        console.log('SSE: Connection opened for Job', jobId);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) {
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+
+          const events = buffer.split(/\r?\n\r?\n/);
+
+          // Keep the incomplete event for the next chunk
+          buffer = events.pop() || '';
+
+          for (const event of events) {
+            const dataLines = event
+              .split(/\r?\n/)
+              .filter((line) => line.startsWith('data:'))
+              .map((line) => line.slice(5).trim());
+
+            if (dataLines.length === 0) {
+              continue;
+            }
+
+            const data = dataLines.join('\n');
+
+            try {
+              const message = JSON.parse(data) as ProgressMessage;
+
+              onMessage(message);
+
+              if (message.type === 'completed') {
+                onComplete(message.videoPath || '');
+
+                controller.abort();
+                setIsConnected(false);
+                return;
+              }
+
+              if (message.type === 'error') {
+                onError(
+                  message.message ??
+                  message.error ??
+                  'Pipeline failed. Unknown error occurred during generation.'
+                );
+
+                controller.abort();
+                setIsConnected(false);
+                return;
+              }
+            } catch (err) {
+              console.error('SSE: Failed to parse message', err);
+            }
+          }
+        }
+
+        setIsConnected(false);
       } catch (err) {
-        console.error('SSE: Failed to parse message', err);
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        console.error('SSE: Connection error', err);
+
+        setIsConnected(false);
+
+        const message =
+          err instanceof Error
+            ? err.message
+            : 'Lost connection to progress server.';
+
+        onError(message);
       }
     };
 
-    es.onerror = (err) => {
-      console.error('SSE: Connection error', err);
-      onError('Lost connection to progress server.');
-      es.close();
-      setIsConnected(false);
-    };
+    connectSSE();
 
     return () => {
-      es.close();
+      controller.abort();
       setIsConnected(false);
     };
   }, [jobId, backendUrl]);

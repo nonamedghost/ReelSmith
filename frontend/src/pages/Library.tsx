@@ -1,24 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Play,
-  Download,
-  Trash2,
-  Upload,
-  //Youtube,
-  Video,
-  ExternalLink,
-  Loader2,
-  AlertCircle,
-  Clock,
-  Film,
-  X
-} from 'lucide-react';
+import { Play, Download, Trash2, Upload, Video, ExternalLink, Loader2, AlertCircle, Clock, Film, X } from 'lucide-react';
 import { getReels, deleteReel, uploadReelToYouTube, /* Reel */ } from '../api/reels';
 import type { Reel } from "../api/reels";
+import apiClient from '../api/client';
 import { useSettings } from '../context/SettingsContext';
 
 export const Library: React.FC = () => {
-  const { backendUrl, isApiOnline } = useSettings();
+  const { isApiOnline } = useSettings();
   const [reels, setReels] = useState<Reel[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +15,7 @@ export const Library: React.FC = () => {
   // Modal tracking
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
   const [activeReel, setActiveReel] = useState<Reel | null>(null);
+  const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>({});
 
   const fetchReelsList = async () => {
     if (!isApiOnline) {
@@ -49,6 +38,42 @@ export const Library: React.FC = () => {
   useEffect(() => {
     fetchReelsList();
   }, [isApiOnline]);
+
+  useEffect(() => {
+    if (!isApiOnline || reels.length === 0) return;
+
+    const loadThumbnails = async () => {
+      const urls: Record<string, string> = {};
+
+      for (const reel of reels) {
+        try {
+          const response = await apiClient.get(
+            `/reels/thumbnail/${reel.id}`,
+            {
+              responseType: 'blob',
+            }
+          );
+
+          urls[reel.id] = URL.createObjectURL(response.data);
+        } catch (err) {
+          console.error(`Failed to load thumbnail for reel ${reel.id}`, err);
+        }
+      }
+
+      setThumbnailUrls(urls);
+    };
+
+    loadThumbnails();
+  }, [reels, isApiOnline]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(thumbnailUrls).forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, [thumbnailUrls]);
+
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this generated Reel? This will remove all local files for this job.')) {
@@ -87,15 +112,56 @@ export const Library: React.FC = () => {
     }
   };
 
-  const openPreviewModal = (reel: Reel) => {
-    // Backend path is usually like "output/final/video.mp4" but we can serve specific files
-    // Let's resolve the path relative to the backendUrl
-    const url = `${backendUrl}/api/reels/video/${reel.id}?t=${Date.now()}`;
-    setActiveVideoUrl(url);
-    setActiveReel(reel);
+  const openPreviewModal = async (reel: Reel) => {
+    try {
+      const response = await apiClient.get(`/reels/video/${reel.id}`, {
+        responseType: 'blob',
+      });
+
+      const videoUrl = URL.createObjectURL(response.data);
+
+      setActiveVideoUrl(videoUrl);
+      setActiveReel(reel);
+    } catch (err: any) {
+      console.error('Failed to load video preview', err);
+      alert(
+        'Could not load video preview: ' +
+        (err.response?.data?.error || err.message)
+      );
+    }
+  };
+
+  const handleDownload = async (reel: Reel) => {
+    try {
+      const response = await apiClient.get(`/reels/download/${reel.id}`, {
+        responseType: 'blob',
+      });
+
+      const downloadUrl = URL.createObjectURL(response.data);
+
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `reel_${reel.id}.mp4`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(downloadUrl);
+    } catch (err: any) {
+      console.error('Failed to download reel', err);
+      alert(
+        'Download failed: ' +
+        (err.response?.data?.error || err.message)
+      );
+    }
   };
 
   const closePreviewModal = () => {
+    if (activeVideoUrl) {
+      URL.revokeObjectURL(activeVideoUrl);
+    }
+
     setActiveVideoUrl(null);
     setActiveReel(null);
   };
@@ -171,15 +237,15 @@ export const Library: React.FC = () => {
               >
                 {/* Visual Thumbnail Placeholder */}
                 <div className="aspect-[9/16] bg-slate-950 relative flex items-center justify-center overflow-hidden border-b border-slate-800/60 h-64">
-                  <img
-                    src={`${backendUrl}/api/reels/thumbnail/${reel.id}`}
-                    alt={reel.metadata?.title || reel.topic}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
+                  {thumbnailUrls[reel.id] && (
+                    <img
+                      src={thumbnailUrls[reel.id]}
+                      alt={reel.metadata?.title || reel.topic}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  )}
+
                   {/* Floating Action Icons */}
                   <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-3 transition-opacity duration-300">
                     <button
@@ -189,14 +255,13 @@ export const Library: React.FC = () => {
                     >
                       <Play className="w-5 h-5 fill-current ml-0.5" />
                     </button>
-                    <a
-                      href={`${backendUrl}/api/reels/download/${reel.id}`}
-                      download={`reel_${reel.id}.mp4`}
+                    <button
+                      onClick={() => handleDownload(reel)}
                       className="w-11 h-11 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center justify-center border border-slate-750 shadow-lg transition-transform hover:scale-105"
                       title="Download Video"
                     >
                       <Download className="w-5 h-5" />
-                    </a>
+                    </button>
                   </div>
 
                   {/* Floating YouTube status */}
@@ -376,14 +441,13 @@ export const Library: React.FC = () => {
 
               {/* Bottom control links */}
               <div className="pt-4 border-t border-slate-850 flex items-center justify-between">
-                <a
-                  href={`${backendUrl}/api/reels/download/${activeReel.id}`}
-                  download={`reel_${activeReel.id}.mp4`}
+                <button
+                  onClick={() => handleDownload(activeReel)}
                   className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg transition-transform hover:scale-105"
                 >
                   <Download className="w-4 h-4" />
                   Download File
-                </a>
+                </button>
 
                 {activeReel.youtubeVideoId && (
                   <a
