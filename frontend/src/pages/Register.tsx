@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -49,6 +50,25 @@ export default function Register() {
     }
   };
 
+  const inputStyle = {
+    width: '100%',
+    boxSizing: 'border-box' as const,
+    padding: '12px 14px',
+    borderRadius: '8px',
+    border: '1px solid #29335c',
+    background: '#080d25',
+    color: '#ffffff',
+    outline: 'none',
+    fontSize: '14px',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    marginBottom: '8px',
+    fontSize: '14px',
+    color: '#e2e8f0',
+  };
+
   return (
     <div
       style={{
@@ -57,6 +77,7 @@ export default function Register() {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '24px',
+        background: '#070b22',
       }}
     >
       <div
@@ -65,14 +86,17 @@ export default function Register() {
           maxWidth: '420px',
           padding: '32px',
           borderRadius: '16px',
-          border: '1px solid #333',
-          background: '#1a1a1a',
+          border: '1px solid #282653',
+          background: '#0d1230',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.35)',
         }}
       >
         <h1
           style={{
             margin: '0 0 8px',
             fontSize: '28px',
+            fontWeight: 700,
+            color: '#ffffff',
           }}
         >
           Create your account
@@ -81,7 +105,8 @@ export default function Register() {
         <p
           style={{
             margin: '0 0 28px',
-            color: '#999',
+            color: '#929bbd',
+            fontSize: '14px',
           }}
         >
           Get started with ReelSmith
@@ -89,13 +114,7 @@ export default function Register() {
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '16px' }}>
-            <label
-              htmlFor="name"
-              style={{
-                display: 'block',
-                marginBottom: '8px',
-              }}
-            >
+            <label htmlFor="name" style={labelStyle}>
               Name
             </label>
 
@@ -106,26 +125,12 @@ export default function Register() {
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
               autoComplete="name"
-              style={{
-                width: '100%',
-                boxSizing: 'border-box',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #444',
-                background: '#111',
-                color: '#fff',
-              }}
+              style={inputStyle}
             />
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label
-              htmlFor="email"
-              style={{
-                display: 'block',
-                marginBottom: '8px',
-              }}
-            >
+            <label htmlFor="email" style={labelStyle}>
               Email
             </label>
 
@@ -136,26 +141,12 @@ export default function Register() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               autoComplete="email"
-              style={{
-                width: '100%',
-                boxSizing: 'border-box',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #444',
-                background: '#111',
-                color: '#fff',
-              }}
+              style={inputStyle}
             />
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label
-              htmlFor="password"
-              style={{
-                display: 'block',
-                marginBottom: '8px',
-              }}
-            >
+            <label htmlFor="password" style={labelStyle}>
               Password
             </label>
 
@@ -166,26 +157,12 @@ export default function Register() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="At least 6 characters"
               autoComplete="new-password"
-              style={{
-                width: '100%',
-                boxSizing: 'border-box',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #444',
-                background: '#111',
-                color: '#fff',
-              }}
+              style={inputStyle}
             />
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <label
-              htmlFor="confirmPassword"
-              style={{
-                display: 'block',
-                marginBottom: '8px',
-              }}
-            >
+            <label htmlFor="confirmPassword" style={labelStyle}>
               Confirm Password
             </label>
 
@@ -196,15 +173,7 @@ export default function Register() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Re-enter your password"
               autoComplete="new-password"
-              style={{
-                width: '100%',
-                boxSizing: 'border-box',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #444',
-                background: '#111',
-                color: '#fff',
-              }}
+              style={inputStyle}
             />
           </div>
 
@@ -214,9 +183,10 @@ export default function Register() {
                 marginBottom: '16px',
                 padding: '10px 12px',
                 borderRadius: '8px',
-                background: '#2a1515',
-                border: '1px solid #5a2525',
-                color: '#ff8a8a',
+                background: '#351a32',
+                border: '1px solid #713052',
+                color: '#ff9bb7',
+                fontSize: '14px',
               }}
             >
               {error}
@@ -231,11 +201,15 @@ export default function Register() {
               padding: '12px',
               borderRadius: '8px',
               border: 'none',
-              background: '#fff',
-              color: '#111',
+              background: loading
+                ? '#4c4b72'
+                : 'linear-gradient(90deg, #7c3aed, #4f46e5)',
+              color: '#ffffff',
               fontWeight: 600,
+              fontSize: '15px',
               cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.6 : 1,
+              opacity: loading ? 0.7 : 1,
+              boxShadow: '0 6px 20px rgba(124, 58, 237, 0.2)',
             }}
           >
             {loading ? 'Creating account...' : 'Create account'}
@@ -246,14 +220,15 @@ export default function Register() {
           style={{
             marginTop: '24px',
             textAlign: 'center',
-            color: '#999',
+            color: '#929bbd',
+            fontSize: '14px',
           }}
         >
           Already have an account?{' '}
           <Link
             to="/login"
             style={{
-              color: '#fff',
+              color: '#a78bfa',
               textDecoration: 'none',
               fontWeight: 600,
             }}

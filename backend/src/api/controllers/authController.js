@@ -1,6 +1,12 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../../database/User.js";
+import { OAuth2Client } from "google-auth-library";
+
+
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID
+);
 
 // Generate JWT token
 function generateToken(userId) {
@@ -95,6 +101,13 @@ export async function login(req, res) {
       });
     }
 
+    // Check whether the account has a password
+    if (!user.password) {
+      return res.status(401).json({
+        message: "This account uses Google login. Please continue with Google.",
+      });
+    }
+
     // Compare password with hashed password
     const passwordMatches = await bcrypt.compare(
       password,
@@ -155,3 +168,91 @@ export async function getMe(req, res) {
     });
   }
 }
+
+
+// POST /api/auth/google
+export async function loginWithGoogle(req, res) {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({
+        message: "Google credential is required.",
+      });
+    }
+
+    // Verify Google's ID token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      return res.status(401).json({
+        message: "Invalid Google credential.",
+      });
+    }
+
+    const {
+      sub: googleId,
+      email,
+      name,
+      email_verified: emailVerified,
+    } = payload;
+
+    if (!email || !emailVerified || !googleId) {
+      return res.status(401).json({
+        message: "Google account verification failed.",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Find the user using Google ID first
+    let user = await User.findOne({ googleId });
+
+    // If not found, check whether the email already exists
+    if (!user) {
+      user = await User.findOne({
+        email: normalizedEmail,
+      });
+    }
+
+    if (user) {
+      // Link Google account to an existing email account
+      if (!user.googleId) {
+        user.googleId = googleId;
+        await user.save();
+      }
+    } else {
+      // Create a new Google-authenticated user
+      user = await User.create({
+        name: name?.trim() || "Google User",
+        email: normalizedEmail,
+        googleId,
+      });
+    }
+
+    // Generate the existing JWT
+    const token = generateToken(user._id.toString());
+
+    return res.status(200).json({
+      message: "Google login successful.",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Google login error:", error.message);
+
+    return res.status(401).json({
+      message: "Google authentication failed.",
+    });
+  }
+}
+

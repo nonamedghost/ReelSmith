@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
@@ -16,10 +17,18 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Optional for Google-authenticated users
     password: {
       type: String,
-      required: true,
+      required: false,
       minlength: 6,
+    },
+
+    // Google account's stable unique identifier
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
     },
   },
   {

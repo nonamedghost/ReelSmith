@@ -6,7 +6,7 @@ import { getYoutubeStatus, getYoutubeAuthUrl, disconnectYoutube, youtubeCallback
 import { getReels, getLatestReel, deleteReel, streamReel, downloadReel, streamThumbnail } from "../controllers/libraryController.js";
 import { getSettings, saveSettings } from "../controllers/settingsController.js";
 import { streamProgress } from "../controllers/progressController.js";
-import { register, login, getMe } from "../controllers/authController.js";
+import { register, login, getMe, loginWithGoogle } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = Router();
@@ -15,6 +15,7 @@ router.get("/health", getHealth);
 
 router.post("/auth/register", register);
 router.post("/auth/login", login);
+router.post("/auth/google", loginWithGoogle);
 router.get("/auth/me", protect, getMe);
 
 router.post("/reels/generate", protect, generateReel);
