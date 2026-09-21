@@ -1,22 +1,25 @@
 import fs from "fs";
 import { google } from "googleapis";
-import { oauth2Client } from "./auth.js";
+import { createOAuthClient } from "./auth.js";
 
 export async function uploadYoutubeVideo({
   videoPath,
-  metadata
+  metadata,
+  tokens,
 }) {
-  // Load saved token
-  const token = JSON.parse(
-    fs.readFileSync("token.json")
-  );
-  oauth2Client.setCredentials(token);
+  if (!tokens?.access_token && !tokens?.refresh_token) {
+    throw new Error("YouTube authentication tokens are missing.");
+  }
+
+  const oauth2Client = createOAuthClient();
+  oauth2Client.setCredentials(tokens);
 
   // Create youtube client
   const youtube = google.youtube({
     version: "v3",
     auth: oauth2Client,
   });
+
   console.log("Starting YouTube upload...");
 
   // Upload video
@@ -28,12 +31,12 @@ export async function uploadYoutubeVideo({
         title: metadata.title,
 
         description: `
-            ${metadata.description}
+          ${metadata.description}
 
-            ${metadata.hashtags.join(" ")}
+          ${(metadata.hashtags || []).join(" ")}
         `,
 
-        tags: metadata.tags,
+        tags: metadata.tags || [],
 
         // Education / Science
         categoryId: "28",
@@ -41,7 +44,6 @@ export async function uploadYoutubeVideo({
 
       status: {
         privacyStatus: "unlisted",
-
         selfDeclaredMadeForKids: false,
       },
     },
@@ -52,6 +54,7 @@ export async function uploadYoutubeVideo({
   });
 
   const videoId = response.data.id;
+
   console.log(
     "Upload complete:",
     `https://youtube.com/watch?v=${videoId}`

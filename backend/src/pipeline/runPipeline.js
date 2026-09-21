@@ -16,6 +16,7 @@ import { getRandomTopic } from "../data/categories.js";
 import { archiveGeneration, createYoutubeInfo } from "../utils/archiveGeneration.js";
 import { createThumbnail } from "../video/utils/createThumbnail.js";
 import { emitProgress, emitLog } from "../api/jobManager.js";
+import YouTubeAccount from "../database/YouTubeAccount.js";
 
 // MAIN PIPELINE
 export async function runPipeline({
@@ -161,9 +162,16 @@ export async function runPipeline({
   // STEP 8: UPLOAD TO YOUTUBE (optional)
   if (uploadToYoutube) {
     try {
+      const account = await YouTubeAccount.findOne({ userId });
+
+      if (!account) {
+        throw new Error("YouTube account is not connected.");
+      }
+
       uploadResult = await uploadYoutubeVideo({
         videoPath: video,
         metadata,
+        tokens: account.tokens?.toObject?.() || account.tokens,
       });
 
       pipelineLog(`✅ YouTube upload complete: ${uploadResult.id}`);

@@ -1,76 +1,61 @@
-import fs from "fs";
 import fsExtra from "fs-extra";
 import path from "path";
 import { google } from "googleapis";
-import { getAuthUrl, saveToken, oauth2Client } from "../../youtube/auth.js";
+import jwt from "jsonwebtoken";
+import { getAuthUrl, saveToken, createOAuthClient, } from "../../youtube/auth.js";
+import YouTubeAccount from "../../database/YouTubeAccount.js";
+
 import { uploadYoutubeVideo } from "../../youtube/uploadYoutube.js";
 import { LIBRARY_DIR } from "../../utils/paths.js";
 
 export async function getYoutubeStatus(req, res) {
   try {
-    // No token = not connected
-    if (!fs.existsSync("token.json")) {
+    const userId = req.user.userId;
+
+    const account = await YouTubeAccount.findOne({ userId });
+
+    if (!account) {
       return res.json({
         success: true,
         youtube: {
           connected: false,
+          channelId: null,
           channelName: null,
           avatarUrl: null,
         },
       });
     }
 
-    // Load saved token
-    const token = JSON.parse(
-      fs.readFileSync("token.json", "utf8")
-    );
-
-    oauth2Client.setCredentials(token);
-
-    // Create YouTube client
-    const youtube = google.youtube({
-      version: "v3",
-      auth: oauth2Client,
-    });
-
-    // Fetch current channel
-    const response = await youtube.channels.list({
-      part: ["snippet"],
-      mine: true,
-    });
-
-    const channel = response.data.items?.[0];
-
-    if (!channel) {
-      throw new Error("No YouTube channel found.");
-    }
-
     res.json({
       success: true,
       youtube: {
         connected: true,
-        channelName: channel.snippet.title,
-        avatarUrl: channel.snippet.thumbnails.default.url,
+        channelId: account.channelId,
+        channelName: account.channelName,
+        avatarUrl: account.avatarUrl,
       },
     });
-
   } catch (err) {
     console.error("Failed to get YouTube status:", err);
 
-    res.json({
-      success: true,
-      youtube: {
-        connected: false,
-        channelName: null,
-        avatarUrl: null,
-      },
+    res.status(500).json({
+      success: false,
+      message: "Failed to get YouTube status.",
     });
   }
 }
 
 export async function getYoutubeAuthUrl(req, res) {
   try {
-    const url = getAuthUrl();
+    const userId = req.user.userId;
+
+    const state = jwt.sign(
+      { userId },
+      process.env.JWT_SECRET,
+      { expiresIn: "10m" }
+    );
+
+    const url = getAuthUrl(state);
 
     res.json({
       success: true,
@@ -88,13 +73,76 @@ export async function getYoutubeAuthUrl(req, res) {
 
 export async function youtubeCallback(req, res) {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
 
-    if (!code) {
-      return res.status(400).send("Missing authorization code.");
+    if (!code || !state) {
+      return res.status(400).send("Missing authorization code or state.");
     }
 
-    await saveToken(code);
+    const decoded = jwt.verify(
+      state,
+      process.env.JWT_SECRET
+    );
+
+    const userId = decoded.userId;
+
+    const tokens = await saveToken(code);
+
+    const existingAccount = await YouTubeAccount.findOne({
+      userId,
+    });
+
+    const refreshToken =
+      tokens.refresh_token ||
+      existingAccount?.tokens?.refresh_token;
+
+    if (!refreshToken) {
+      return res.status(400).send(
+        "No refresh token received. Please reconnect your YouTube account."
+      );
+    }
+
+    const mergedTokens = {
+      ...(existingAccount?.tokens?.toObject?.() || {}),
+      ...tokens,
+      refresh_token: refreshToken,
+    };
+
+    const oauth2Client = createOAuthClient();
+    oauth2Client.setCredentials(mergedTokens);
+
+    const youtube = google.youtube({
+      version: "v3",
+      auth: oauth2Client,
+    });
+
+    const response = await youtube.channels.list({
+      part: ["snippet"],
+      mine: true,
+    });
+
+    const channel = response.data.items?.[0];
+
+    if (!channel) {
+      return res.status(400).send("No YouTube channel found.");
+    }
+
+    await YouTubeAccount.findOneAndUpdate(
+      { userId },
+      {
+        userId,
+        channelId: channel.id,
+        channelName: channel.snippet.title,
+        avatarUrl:
+          channel.snippet.thumbnails?.default?.url || null,
+        tokens: mergedTokens,
+      },
+      {
+        upsert: true,
+        returnDocument: "after",
+        runValidators: true,
+      }
+    );
 
     res.redirect(`${process.env.FRONTEND_URL}/settings`);
   } catch (err) {
@@ -106,9 +154,9 @@ export async function youtubeCallback(req, res) {
 
 export async function disconnectYoutube(req, res) {
   try {
-    if (fs.existsSync("token.json")) {
-      fs.unlinkSync("token.json");
-    }
+    const userId = req.user.userId;
+
+    await YouTubeAccount.findOneAndDelete({ userId });
 
     res.json({
       success: true,
@@ -135,11 +183,22 @@ export async function uploadReelToYoutube(req, res) {
       });
     }
 
-    // Check YouTube authentication
-    if (!fs.existsSync("token.json")) {
+    // Get the logged-in user's YouTube account
+    const userId = req.user.userId;
+
+    const account = await YouTubeAccount.findOne({ userId });
+
+    if (!account) {
       return res.status(401).json({
         success: false,
         error: "YouTube is not connected.",
+      });
+    }
+
+    if (!account.tokens?.access_token && !account.tokens?.refresh_token) {
+      return res.status(401).json({
+        success: false,
+        error: "YouTube authentication tokens are missing.",
       });
     }
 
@@ -158,11 +217,14 @@ export async function uploadReelToYoutube(req, res) {
     // Load reel information
     const reel = await fsExtra.readJson(reelJsonPath);
 
-    // Resolve video path using the same structure as Library
-    const videoPath = path.join(
-      reelDir,
-      reel.files.video
-    );
+    if (!reel.files?.video) {
+      return res.status(404).json({
+        success: false,
+        error: "Video information missing from reel.",
+      });
+    }
+
+    const videoPath = path.join(reelDir, reel.files.video);
 
     if (!(await fsExtra.pathExists(videoPath))) {
       return res.status(404).json({
@@ -171,7 +233,7 @@ export async function uploadReelToYoutube(req, res) {
       });
     }
 
-    // Load existing metadata
+    // Check metadata exists
     if (!(await fsExtra.pathExists(metadataPath))) {
       return res.status(404).json({
         success: false,
@@ -183,13 +245,18 @@ export async function uploadReelToYoutube(req, res) {
 
     console.log(`Starting manual YouTube upload for reel: ${id}`);
 
-    // Reuse existing YouTube uploader
+    // Upload using this user's MongoDB tokens
     const result = await uploadYoutubeVideo({
       videoPath,
       metadata,
+      tokens: account.tokens?.toObject?.() || account.tokens,
     });
 
-    // Save upload state back into reel.json
+    if (!result?.id) {
+      throw new Error("YouTube upload completed without returning a video ID.");
+    }
+
+    // Save upload state
     reel.youtube = {
       status: "uploaded",
       videoId: result.id,
@@ -207,7 +274,6 @@ export async function uploadReelToYoutube(req, res) {
       videoId: result.id,
       url: `https://youtube.com/watch?v=${result.id}`,
     });
-
   } catch (err) {
     console.error("Manual YouTube upload failed:", err);
 
