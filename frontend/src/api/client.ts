@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const backendUrl =
-  localStorage.getItem('backend_url') ||
   import.meta.env.VITE_API_URL ||
+  localStorage.getItem('backend_url') ||
   'http://localhost:3000';
 
 const apiBaseUrl = `${backendUrl}/api`;

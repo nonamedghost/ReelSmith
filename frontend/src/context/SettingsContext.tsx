@@ -13,13 +13,11 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
-  // const [backendUrl, setBackendUrlState] = useState<string>(() => {
-  //   return localStorage.getItem('backend_url') || 'http://localhost:3000';
-  // });
-
   const [backendUrl, setBackendUrlState] = useState<string>(() => {
     const savedUrl =
-      localStorage.getItem('backend_url') || 'http://localhost:3000';
+      import.meta.env.VITE_API_URL ||
+      localStorage.getItem('backend_url') ||
+      'http://localhost:3000';
 
     updateClientBaseURL(savedUrl);
 
