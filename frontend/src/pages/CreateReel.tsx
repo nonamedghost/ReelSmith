@@ -94,8 +94,12 @@ export const CreateReel: React.FC = () => {
     jobId,
     onMessage: (message: ProgressMessage) => {
       // Terminal logs
-      if (message.type === 'log' && message.message) {
-        setLogs((prev) => [...prev, message.message]);
+      if (message.type === 'log') {
+        const logMessage = message.message;
+
+        if (logMessage) {
+          setLogs((prev) => [...prev, logMessage]);
+        }
       }
       // Only progress events should update the StepTracker
       if (message.type === 'progress') {
